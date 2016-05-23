@@ -32,6 +32,15 @@ def load_labels(caffe_root):
     
     return new_labels
 
+def get_label_from_class_name(labels, classname):
+    classname = classname.strip()
+    
+    for index, l in enumerate(labels):
+        if l[0].strip() == classname:
+            return index
+    else:
+        raise KeyError('Class name not found')
+
 def build_transformer(net):
     transformer = caffe.io.Transformer( {'data': net.blobs['data'].data.shape} )
     transformer.set_transpose('data', (2,0,1))
