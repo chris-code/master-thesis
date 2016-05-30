@@ -48,3 +48,10 @@ def build_transformer(net):
     transformer.set_channel_swap('data', (2,1,0)) # the reference model has channels in BGR order instead of RGB
     
     return transformer
+
+def load_image(transformer, path):
+    image = caffe.io.load_image(path)
+    image = transformer.preprocess('data', image)
+    image = np.expand_dims(image, 0)
+    
+    return image
