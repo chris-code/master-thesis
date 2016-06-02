@@ -8,7 +8,7 @@
 # - There are no other folders or files in *data_root*
 # - There are no other folders or files in *data_root*'s class-specific subfolders
 # 
-# For each class, a random representative will be selected. Adversarial examples pretending to belong to each class will be generated for it. The program tries to make the network believe the image to belong to this class with *CONFIDENCE_TARGET* certainty, but will not spend longer than *MAX_ITERATIONS* on generating one AE.
+# For each class, a random representative will be selected. Adversarial examples pretending to belong to each class will be generated for it. The program tries to achive *CONFIDENCE_TARGET* certainty of the network, but will not spend longer than *MAX_ITERATIONS* on generating one AE. The number of considered classes can be restricted with *CLASS_LIMIT* (*None* means cross-generate AEs for all classes)
 # 
 # The output is saved to *OUTPUT_ROOT*, with the following structure:
 # - For each class, there is a directory with the class name
@@ -27,16 +27,18 @@ import csv
 import numpy as np
 import caffe
 import adex
+import adex.core
 import adex.googlenet
 
 CAFFE_ROOT = '/home/chrisbot/Projects/caffe'
-DATA_ROOT = '/media/sf_Masterarbeit/data/ILSVRC2012_img_train_t3'
-OUTPUT_ROOT = '/media/sf_Masterarbeit/data/ILSVRC2012_img_train_t3_adversarial'
+DATA_ROOT = '/media/sf_Masterarbeit/data/ILSVRC2012_img_train_panda'
+OUTPUT_ROOT = '/media/sf_Masterarbeit/data/ILSVRC2012_img_train_panda_AE'
 BATCH_SIZE = 1
 
 AE_GRAD_COEFF = 0.9
 CONFIDENCE_TARGET = 0.9
-MAX_ITERATIONS = 5
+MAX_ITERATIONS = 10
+CLASS_LIMIT = 5
 
 
 # Next, we load the network, the labels and a transformer for i/o.
@@ -44,65 +46,67 @@ MAX_ITERATIONS = 5
 # In[2]:
 
 net = adex.googlenet.load_model(CAFFE_ROOT, BATCH_SIZE)
-labels = adex.googlenet.load_labels(CAFFE_ROOT) # TODO do we need those?
+labels = adex.googlenet.load_labels(CAFFE_ROOT)
 transformer = adex.googlenet.build_transformer(net)
 
 
-# Since we only have the name of the class, we need to get the actual network label. The following function does that.
+# Lastly, it is handy to have a function that turns the representative of one class into an AE of another class, adhering to the defined file structure.
 
 # In[3]:
 
-def get_label_from_classname(labels, classname):
-    classname = classname.strip()
-    
-    for index, l in enumerate(labels):
-        if l[0].strip() == classname:
-            return index
-    else:
-        raise KeyError('Class name not found')
-
-
-# In[5]:
-
-class_directories = os.listdir(DATA_ROOT)
-for directory_index, class_directory in enumerate(class_directories): # Iterate over all classes / their directories
-    class_files = os.listdir(DATA_ROOT + '/' + class_directory)
-    random_class_representative = random.choice(class_files)
-    
-    # Load the representative image for this class
-    image = caffe.io.load_image(DATA_ROOT + '/' + class_directory + '/' + random_class_representative)
+def make_ae_for_paths(infile, outfile, net, labels, target_class_name,
+                                   AE_GRAD_COEFF, CONFIDENCE_TARGET, MAX_ITERATIONS):
+    # Load class representative
+    image = caffe.io.load_image(infile)
     image = transformer.preprocess('data', image)
     image = np.expand_dims(image, 0)
     
-    print('Transforming class {0} ({1}/{2}):'.format(class_directory, directory_index, len(class_directories)))
+    target_label = adex.googlenet.get_label_from_class_name(labels, target_class_name)
+    target_label = np.array([target_label]) # Caffe-friendly format for labels
+    
+    adversarial_image, confidence, iterations = adex.core.make_adversarial(net, image, target_label, AE_GRAD_COEFF,
+                                                                               CONFIDENCE_TARGET, MAX_ITERATIONS)
+    np.save(outfile, adversarial_image)
+    return confidence, iterations
+
+
+# Finally, we generate AEs.
+
+# In[4]:
+
+class_directories = os.listdir(DATA_ROOT) # The list of classes (conincide with their directory names)
+random.shuffle(class_directories)
+if CLASS_LIMIT is not None: # Make sure we only consider CLASS_LIMIT many classes
+    class_directories = class_directories[:CLASS_LIMIT]
+
+for directory_index, class_directory in enumerate(class_directories): # Iterate over all classes / their directories
+    print('\nGenerating AEs for class ({0}/{1}): {2} '.format(directory_index + 1, len(class_directories), class_directory))
+    
+    random_class_representative = random.choice(os.listdir(DATA_ROOT + '/' + class_directory))
     
     # Prepare output directory
     try:
-        os.mkdir(OUTPUT_ROOT + '/' + class_directory)
+        os.mkdir(OUTPUT_ROOT + '/' + random_class_representative[:-5])
     except OSError:
         pass # Directory already exists
     
     history = [] # Keeps track of confidence and iterations
-    for target_class_directory in class_directories: # Iterate over all classes again
-        #if class_directory == target_class_directory: # Do not transform a class into itself
-        #    continue
+    for target_class_name in class_directories: # Iterate over all classes again
         sys.stdout.write('.')
+        sys.stdout.flush()
         
-        label = get_label_from_classname(labels, target_class_directory) # Get the target label
-        label = np.array([label])
+        #Generate AEs
+        infile = DATA_ROOT + '/' + class_directory + '/' + random_class_representative
+        outfile = OUTPUT_ROOT + '/' + random_class_representative[:-5] + '/' + target_class_name + '.npy'
+        confidence, iterations = make_ae_for_paths(infile, outfile, net, labels, target_class_name,
+                                                   AE_GRAD_COEFF, CONFIDENCE_TARGET, MAX_ITERATIONS)
         
-        adversarial_image, confidence, iterations = adex.core.make_adversarial(net,
-                                                                               image, label, AE_GRAD_COEFF,
-                                                                               CONFIDENCE_TARGET, MAX_ITERATIONS)
-        
-        history.append( [random_class_representative, target_class_directory, confidence, iterations] )
-        np.save(OUTPUT_ROOT + '/' + class_directory + '/' + target_class_directory + '.npy', adversarial_image)
+        # Add data to history
+        history.append( [random_class_representative, target_class_name, confidence, iterations] )
     
     # Write history to file
-    with open(OUTPUT_ROOT + '/' + class_directory + '/' + 'history.csv', 'wb') as csvfile:
+    with open(OUTPUT_ROOT + '/' + class_directory + '_' + 'history.csv', 'wb') as csvfile:
         writer = csv.writer(csvfile)
         for target_class_history in history:
             writer.writerow(target_class_history)
-    
-    break # FIXME remove this
 
