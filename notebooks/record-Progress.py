@@ -3,6 +3,7 @@
 
 # In[20]:
 
+import sys
 import random
 import csv
 import glob
@@ -52,25 +53,31 @@ for row in csv_data:
 csv_successes = csv_successes[:SAMPLE_COUNT] # Ensure a maximum of SAMPLE_COUNT images each
 csv_failures = csv_failures[:SAMPLE_COUNT]
 
+print('Working with {0} successful and {1} failed transformations'.format(len(csv_successes), len(csv_failures)))
+
 
 # *make_ae* is a wrapper function for *adex.core.make_adversarial* that performs a fixed number of steps, regardless of confidence, and returns the confidence progress over time. *record_progress* records these progesses for all images in *csv_list* in a 2-dimensional numpy array.
 
-# In[32]:
+# In[35]:
 
 def make_ae(net, data, desired_labels, ae_grad_coeff, iterations):
     progress = np.zeros(shape=(iterations))
     ae_data = data.copy()
     
     for i in range(iterations):
-        ae_data, confidence, num_it = adex.core.make_adversarial(net, ae_data, desired_labels, ae_grad_coeff, 100, 1)
+        ae_data, confidence, _ = adex.core.make_adversarial(net, ae_data, desired_labels, ae_grad_coeff / iterations,
+                                                            100, 1)
         progress[i] = confidence
     
-    return progress
+    return ae_data, progress
 
 def record_progress(csv_list):
     progress_record = np.zeros(shape=(ITERATIONS))
     
     for orig_filename, target_class, _, _ in csv_list:
+        sys.stdout.write('.')
+        sys.stdout.flush()
+        
         orig_class = orig_filename[:9]
 
         image = caffe.io.load_image(DATA_ROOT + '/' + orig_class + '/' + orig_filename)
@@ -80,10 +87,11 @@ def record_progress(csv_list):
         label = adex.googlenet.get_label_from_class_name(labels, target_class)
         label = np.array([label])
 
-        progress = make_ae(net, image, label, AE_GRAD_COEFF, ITERATIONS)
+        ae_data, progress = make_ae(net, image, label, AE_GRAD_COEFF, ITERATIONS)
         progress_record = np.vstack([progress_record, progress])
     
-    return progress_record[1:] # Skip the first because it is all zeros (initialization for stacking)
+    print('')
+    return progress_record[1:] # Skip the first because it is all zeros (initialization for np.vstack)
 
 success_progress = record_progress(csv_successes)
 failure_progress = record_progress(csv_failures)
