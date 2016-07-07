@@ -1,10 +1,11 @@
 
 # coding: utf-8
 
-# In[20]:
+# In[1]:
 
 import sys
 import random
+import os
 import csv
 import glob
 import numpy as np
@@ -13,8 +14,9 @@ import adex.core
 import adex.googlenet
 
 CAFFE_ROOT = '/home/chrisbot/Projects/caffe'
-DATA_ROOT = '/media/sf_Masterarbeit/data/ILSVRC2012_img_train_panda'
-AE_ROOT = '/media/sf_Masterarbeit/data/ILSVRC2012_img_train_panda_AE'
+DATA_ROOT = '/media/sf_Masterarbeit/data/ILSVRC2012_img_train'
+AE_ROOT = '/media/sf_Masterarbeit/data/ILSVRC2012_img_train_AE_50'
+OUT_ROOT = '/media/sf_Masterarbeit/data/ILSVRC2012_img_train_AE_50_progress_500_2.0'
 
 AE_GRAD_COEFF = 0.9
 ITERATIONS = 10
@@ -31,7 +33,7 @@ transformer = adex.googlenet.build_transformer(net)
 
 # We are gonna prepare the data by reading all .csv files in the *AE_ROOT* folder. They will be split into a success and a failure set.
 
-# In[29]:
+# In[2]:
 
 csv_data = []
 for csvpath in glob.glob(AE_ROOT + '/*history.csv'):
@@ -58,7 +60,7 @@ print('Working with {0} successful and {1} failed transformations'.format(len(cs
 
 # *make_ae* is a wrapper function for *adex.core.make_adversarial* that performs a fixed number of steps, regardless of confidence, and returns the confidence progress over time. *record_progress* records these progesses for all images in *csv_list* in a 2-dimensional numpy array.
 
-# In[35]:
+# In[3]:
 
 def make_ae(net, data, desired_labels, ae_grad_coeff, iterations):
     progress = np.zeros(shape=(iterations))
@@ -89,6 +91,10 @@ def record_progress(csv_list):
 
         ae_data, progress = make_ae(net, image, label, AE_GRAD_COEFF, ITERATIONS)
         progress_record = np.vstack([progress_record, progress])
+        
+        # Save AE data to disk
+        os.mkdir(OUT_ROOT + '/' + orig_filename[:-5])
+        np.save(OUT_ROOT + '/' + orig_filename[:-5] + '/' + target_class + '.npy', ae_data)
     
     print('')
     return progress_record[1:] # Skip the first because it is all zeros (initialization for np.vstack)
@@ -99,16 +105,16 @@ failure_progress = record_progress(csv_failures)
 
 # Finally, write the data to disk.
 
-# In[33]:
+# In[4]:
 
-with open(AE_ROOT + '/' + 'success_progress.csv', 'w') as file_desc:
+with open(OUT_ROOT + '/' + 'success_progress.csv', 'w') as file_desc:
     writer = csv.writer(file_desc)
     for row in csv_successes:
         writer.writerow(row)
-with open(AE_ROOT + '/' + 'failure_progress.csv', 'w') as file_desc:
+with open(OUT_ROOT + '/' + 'failure_progress.csv', 'w') as file_desc:
     writer = csv.writer(file_desc)
     for row in csv_failures:
         writer.writerow(row)
-np.save(AE_ROOT + '/' + 'success_progress.npy', success_progress)
-np.save(AE_ROOT + '/' + 'failure_progress.npy', failure_progress)
+np.save(OUT_ROOT + '/' + 'success_progress.npy', success_progress)
+np.save(OUT_ROOT + '/' + 'failure_progress.npy', failure_progress)
 
