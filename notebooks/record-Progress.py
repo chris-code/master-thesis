@@ -93,7 +93,10 @@ def record_progress(csv_list):
         progress_record = np.vstack([progress_record, progress])
         
         # Save AE data to disk
-        os.mkdir(OUT_ROOT + '/' + orig_filename[:-5])
+        try:
+            os.mkdir(OUT_ROOT + '/' + orig_filename[:-5])
+        except OSError:
+            pass # Directory exist
         np.save(OUT_ROOT + '/' + orig_filename[:-5] + '/' + target_class + '.npy', ae_data)
     
     print('')
