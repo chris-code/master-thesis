@@ -1,0 +1,48 @@
+#net: "models/bvlc_googlenet/train_val.prototxt"
+#test_iter: 1000
+#test_interval: 4000
+#test_initialization: false
+#display: 40
+#average_loss: 40
+#base_lr: 0.01
+#lr_policy: "step"
+#stepsize: 320000
+#gamma: 0.96
+#max_iter: 10000000
+#momentum: 0.9
+#weight_decay: 0.0002
+#snapshot: 40000
+#snapshot_prefix: "models/bvlc_googlenet/bvlc_googlenet"
+#solver_mode: GPU
+
+# -----------------------------
+
+solver_mode: CPU
+
+type: "SGD"
+net: "/home/chrisbot/Projects/master-thesis/gtsrb/network.prototxt"
+test_iter: 1000
+test_interval: 4000
+test_initialization: false
+display: 40
+average_loss: 40
+
+#base_lr: 0.1		# begin training at a learning rate of 0.1
+#lr_policy: "step"	# learning rate policy: drop the learning rate in "steps" by a factor of gamma every stepsize iterations
+#gamma: 0.96			# drop the learning rate by a factor of 10
+					# (i.e., multiply it by a factor of gamma = 0.1)
+#stepsize: 39296		# drop the learning rate every 100k iterations
+#max_iter: 550144	# train for 350K iterations total
+###### momentum: 0.9
+
+base_lr: 0.1
+lr_policy: "exp"
+gamma: 0.999999
+max_iter: 550144
+
+snapshot: 39296		# The snapshot interval in iterations.
+# File path prefix for snapshotting model weights and solver state.
+# Note: this is relative to the invocation of the `caffe` utility, not the solver definition file.
+snapshot_prefix: "/home/chrisbot/Projects/master-thesis/gtsrb/snapshots/"
+snapshot_diff: false		# Snapshot the diff along with the weights.
+snapshot_after_train: true	# Save final snapshot at the end of training. This is the default.
