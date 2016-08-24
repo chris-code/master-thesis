@@ -33,6 +33,7 @@ layer {
 		phase: TEST
 	}
 }
+
 layer {
 	name: "conv1"
 	type: "Convolution"
@@ -68,6 +69,7 @@ layer {
 		stride: 2
 	}
 }
+
 layer {
 	name: "conv2"
 	type: "Convolution"
@@ -103,6 +105,7 @@ layer {
 		stride: 2
 	}
 }
+
 layer {
 	name: "conv3"
 	type: "Convolution"
@@ -138,6 +141,7 @@ layer {
 		stride: 2
 	}
 }
+
 layer {
 	name: "ip1"
 	type: "InnerProduct"
@@ -167,6 +171,7 @@ layer {
 	bottom: "ip1"
 	top: "act4"
 }
+
 layer {
 	name: "ip2"
 	type: "InnerProduct"
@@ -190,6 +195,7 @@ layer {
 		}
 	}
 }
+
 layer {
 	name: "loss"
 	type: "SoftmaxWithLoss"
