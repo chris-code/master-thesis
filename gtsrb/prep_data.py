@@ -29,19 +29,19 @@ for d in os.listdir(IN_PATH):
 			out_file = OUT_PATH + '/' + d + '/' + row['Filename']
 			file_list.append((out_file, int(row['ClassId'])))
 			
-			#image = PIL.Image.open(in_file)
+			image = PIL.Image.open(in_file)
 			
 			# Crop image
-			#roi_borders = (int(row['Roi.X1']), int(row['Roi.Y1']), int(row['Roi.X2']), int(row['Roi.Y2']))
-			#image = image.crop(roi_borders)
+			roi_borders = (int(row['Roi.X1']), int(row['Roi.Y1']), int(row['Roi.X2']), int(row['Roi.Y2']))
+			image = image.crop(roi_borders)
 			
 			# Enhance contrast
-			#image = PIL.ImageOps.autocontrast(image)
+			image = PIL.ImageOps.autocontrast(image)
 			
 			# Resize
-			#image = image.resize(NEW_RES)
+			image = image.resize(NEW_RES)
 			
-			#image.save(out_file)
+			image.save(out_file)
 
 file_list_path = OUT_PATH + '/' + 'train_images_labeled.txt'
 with open(file_list_path, 'w') as outfile:
