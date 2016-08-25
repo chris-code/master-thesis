@@ -7,6 +7,11 @@ IN_PATH = '/media/sf_Masterarbeit/data/GTSRB_TRAIN' # Where the original GTSRB T
 OUT_PATH = '/media/sf_Masterarbeit/data/GTSRB_TRAIN_PREPROCESSED' # Where to put the cropped and rescaled images
 NEW_RES = (48, 48)
 
+try:
+	os.mkdir(OUT_PATH) # Create output directory
+except OSError: # Directory exists
+	pass
+
 # Used to generate a file with each line containing a filename and the class of the corresponding image.
 file_list = []
 

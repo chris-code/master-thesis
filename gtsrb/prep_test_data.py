@@ -1,3 +1,4 @@
+import os
 import csv
 import PIL.Image
 import PIL.ImageOps
@@ -5,6 +6,11 @@ import PIL.ImageOps
 IN_PATH = '/media/sf_Masterarbeit/data/GTSRB_TEST' # Where the original GTSRB Train data resides
 OUT_PATH = '/media/sf_Masterarbeit/data/GTSRB_TEST_PREPROCESSED' # Where to put the cropped and rescaled images
 NEW_RES = (48, 48)
+
+try:
+	os.mkdir(OUT_PATH) # Create output directory
+except OSError: # Directory exists
+	pass
 
 # Used to generate a file with each line containing a filename and the class of the corresponding image.
 file_list = []
