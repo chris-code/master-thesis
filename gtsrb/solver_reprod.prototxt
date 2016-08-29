@@ -1,7 +1,7 @@
 # General
 solver_mode: CPU
 type: "SGD"
-net: "/home/chrisbot/Projects/master-thesis/gtsrb/network.prototxt"
+net: "/home/chrisbot/Projects/master-thesis/gtsrb/network_reprod.prototxt"
 
 max_iter: 548926
 

@@ -1,0 +1,238 @@
+name: "GTSRBNet"
+layer {
+	name: "gtsrb"
+	type: "ImageData"
+	top: "data"
+	top: "label"
+	image_data_param {
+		source: "/media/sf_Masterarbeit/data/GTSRB_TRAIN_PREPROCESSED/train_images_labeled.txt"
+		batch_size: 16
+		shuffle: true
+	}
+	transform_param {
+		scale: 0.00390625
+	}
+	include {
+		phase: TRAIN
+	}
+}
+layer {
+	name: "gtsrb"
+	type: "ImageData"
+	top: "data"
+	top: "label"
+	image_data_param {
+		source: "/media/sf_Masterarbeit/data/GTSRB_TEST_PREPROCESSED/test_images_labeled.txt"
+		batch_size: 16
+		shuffle: false
+	}
+	transform_param {
+		scale: 0.00390625
+	}
+	include {
+		phase: TEST
+	}
+}
+
+layer {
+	name: "conv1"
+	type: "Convolution"
+	bottom: "data"
+	top: "conv1"
+	param {
+		lr_mult: 1
+	}
+	convolution_param {
+		num_output: 100
+		kernel_size: 7
+		stride: 1
+		bias_term: false
+		weight_filler {
+			type: "uniform"
+			min: -0.05
+			max: 0.05
+		}
+	}
+}
+layer {
+	name: "act1"
+	type: "TanH"
+	bottom: "conv1"
+	top: "act1"
+}
+layer {
+	name: "pool1"
+	type: "Pooling"
+	bottom: "act1"
+	top: "pool1"
+	pooling_param {
+		pool: MAX
+		kernel_size: 2
+		stride: 2
+	}
+}
+
+layer {
+	name: "conv2"
+	type: "Convolution"
+	bottom: "pool1"
+	top: "conv2"
+	param {
+		lr_mult: 1
+	}
+	convolution_param {
+		num_output: 150
+		kernel_size: 4
+		stride: 1
+		bias_term: false
+		weight_filler {
+			type: "uniform"
+			min: -0.05
+			max: 0.05
+		}
+	}
+}
+layer {
+	name: "act2"
+	type: "TanH"
+	bottom: "conv2"
+	top: "act2"
+}
+layer {
+	name: "pool2"
+	type: "Pooling"
+	bottom: "act2"
+	top: "pool2"
+	pooling_param {
+		pool: MAX
+		kernel_size: 2
+		stride: 2
+	}
+}
+
+layer {
+	name: "conv3"
+	type: "Convolution"
+	bottom: "pool2"
+	top: "conv3"
+	param {
+		lr_mult: 1
+	}
+	convolution_param {
+		num_output: 250
+		kernel_size: 4
+		stride: 1
+		bias_term: false
+		weight_filler {
+			type: "uniform"
+			min: -0.05
+			max: 0.05
+		}
+	}
+}
+layer {
+	name: "act3"
+	type: "TanH"
+	bottom: "conv3"
+	top: "act3"
+}
+layer {
+	name: "pool3"
+	type: "Pooling"
+	bottom: "act3"
+	top: "pool3"
+	pooling_param {
+		pool: MAX
+		kernel_size: 2
+		stride: 2
+	}
+}
+
+layer {
+	name: "ip1"
+	type: "InnerProduct"
+	bottom: "pool3"
+	top: "ip1"
+	param {
+		lr_mult: 1
+	}
+	param {
+		lr_mult: 2
+	}
+	inner_product_param {
+		num_output: 300
+		bias_term: true
+		weight_filler {
+			type: "uniform"
+			min: -0.05
+			max: 0.05
+		}
+		bias_filler {
+			type: "constant"
+			value: 0
+		}
+	}
+}
+layer {
+	name: "act4"
+	type: "TanH"
+	bottom: "ip1"
+	top: "act4"
+}
+
+layer {
+	name: "ip2"
+	type: "InnerProduct"
+	bottom: "act4"
+	top: "ip2"
+	param {
+		lr_mult: 1
+	}
+	param {
+		lr_mult: 2
+	}
+	inner_product_param {
+		num_output: 43
+		bias_term: true
+		weight_filler {
+			type: "uniform"
+			min: -0.05
+			max: 0.05
+		}
+		bias_filler {
+			type: "constant"
+			value: 0
+		}
+	}
+}
+
+layer {
+	name: "loss"
+	type: "SoftmaxWithLoss"
+	bottom: "ip2"
+	bottom: "label"
+	top: "loss"
+}
+layer {
+	name: "accuracy/top-1"
+	type: "Accuracy"
+	bottom: "ip2"
+	bottom: "label"
+	top: "accuracy/top-1"
+	include {
+		phase: TEST
+	}
+}
+layer {
+	name: "accuracy/top-3"
+	type: "Accuracy"
+	bottom: "ip2"
+	bottom: "label"
+	top: "accuracy/top-3"
+	accuracy_param {
+		top_k: 3
+	}
+	include {
+		phase: TEST
+	}
+}

@@ -1,0 +1,26 @@
+# General
+solver_mode: CPU
+type: "SGD"
+net: "/home/chrisbot/Projects/master-thesis/gtsrb/reprod_network.prototxt"
+
+max_iter: 548926
+
+# Learning rate
+base_lr: 0.1
+lr_policy: "exp"
+gamma: 0.999997
+
+# Output
+display: 100
+average_loss: 100
+
+# Network testing
+test_iter: 1000
+test_interval: 4000
+test_initialization: false
+
+# Snapshots
+snapshot: 39209				# The snapshot interval in iterations.
+snapshot_prefix: "/home/chrisbot/Projects/master-thesis/gtsrb/snapshots/" # Relative to caffe utility invocation, not solver proto.
+snapshot_diff: false		# Snapshot the diff along with the weights.
+snapshot_after_train: true	# Save final snapshot at the end of training. This is the default.
