@@ -104,11 +104,11 @@ Furthermore, the process of generating adversarial examples can be inspected on 
 The aforementioned results will be obtained with multiple data sets and various network layouts and parameter configurations. The latter will also allow for inspection of the impact of parameter choice on various statistics.
 
 % History
-% What is a neural network
-% Strengths
-% Industry applications
-% The problem with adversarial examples
-% What this thesis is about
+%% What is a neural network
+%% Strengths
+%% Industry applications
+%% The problem with adversarial examples
+%% What this thesis is about
 % Future prospects
 
 \newpage
@@ -135,11 +135,11 @@ An artificial neuron as used in an ANN mimics this process, but in a greatly sim
 	\label{fig:artificial-neuron-schematic}
 \end{figure}
 
-The first thing to note is that the input to the neuron is now formalized as a vector $\vec{i}$ with components $i_1 \dots i_n$, where $n$ represents the number of inputs that influence this neuron. Each input value $i_j$ is multiplied with a \emph{weight}, denoted by $w_j$. This weight can be thought of as an abstraction of the synaptic strength between two neurons. Then, all of these input-weight pairs are summed up to realize the counterpart to the membrane potential, labeled $m$. To form the neuron's output $o$, one last step is neccessary. In biological neurons, the rate of outgoing spikes of a neuron is not linear in the incomming spikes. Thus, a nonlinear \emph{activation function} is applied to the membrane potential $m$, symbolized by the sigmoidally shaped line in the rectangular box in figure \ref{fig:artificial-neuron-schematic}. If that activation function is called $\sigma$, the mathematical operation performed by a single neuron can be summarized according to equations \eqref{neuron-math-membrane-potential} and \eqref{neuron-math-activation-function}.
+The first thing to note is that the input to the neuron is now formalized as a vector $\vec{i}$ with components $i_1 \dots i_n$, where $n$ represents the number of inputs that influence this neuron. Each input value $i_j$ is multiplied with a \emph{weight}, denoted by $w_j$. This weight can be thought of as an abstraction of the synaptic strength between two neurons. Then, all of these input-weight pairs are summed up to realize the counterpart to the membrane potential, labeled $m$. To form the neuron's output $o$, one last step is neccessary. In biological neurons, the rate of outgoing spikes of a neuron is not linear in the incomming spikes. Thus, a nonlinear \emph{activation function} is applied to the membrane potential $m$, symbolized by the sigmoidally shaped line in the rectangular box in figure \ref{fig:artificial-neuron-schematic}. If that activation function is called $\sigma$, the mathematical operation performed by a single neuron can be summarized according to equations \eqref{eq:neuron-math-membrane-potential} and \eqref{eq:neuron-math-activation-function}.
 
 \begin{align}
-	m &= \sum_{i=1}^n w_n \cdot i_n = \vec{w}^T \vec{i} \label{neuron-math-membrane-potential}\\
-	o &= \sigma \braces{m} \label{neuron-math-activation-function}
+	m &= \sum_{i=1}^n w_n \cdot i_n = \vec{w}^T \vec{i} \label{eq:neuron-math-membrane-potential} \\
+	o &= \sigma \braces{m} \label{eq:neuron-math-activation-function}
 \end{align}
 
 
@@ -156,23 +156,70 @@ Take note of the fact that the very first step performed on the input is essenti
 
 Out of these, the easiest to justify is the logistic sigmoid. If the output is to represent the neuron's firing rate, it must not become negative, and it must saturate because of the refractory period required by biological cells. Under these conditions, the logistic function is a simple continuous choice. The hyperbolic tangent is a linearly transformed version of this. While its negative range may be harder to interpret biologically, the option to output negative values may relieve the trainable parameters of a network of some demand for computational power, thus facilitating training. Despite being non-continuous and having no upper bound, the ReLU is the most popular activation function according to \cite{deep-learning-2015}. The networks utilized in this thesis mostly make use of the $\tanh$ and ReLU activation functions.
 
-Since a single neuron as described above consists only of an inner product and a onedimensional non-linearity, its computational power is limited. Artificial neural networks rely on thousands of neurons to perform their tasks. This gives rise to the question of how to connect all those neurons. Conceptually, one could link them up in such a way that a neuron that receives input from another neuron while at the same time delivering input to that same neuron (either directly or via proxy neurons), forming a cycle. This is sometimes done in practice and is called a \emph{Recurrent Neural Network (RNN)}, but is out of scope for this thesis. Instead, neurons will be organized in \emph{layers}, as shown in figure %TODO
+Since a single neuron as described above consists only of an inner product and a one-dimensional non-linearity, its computational power is limited. Artificial neural networks rely on thousands of neurons to perform their tasks. This gives rise to the question of how to connect all those neurons. Conceptually, one could link them up in such a way that a neuron that receives input from another neuron while at the same time delivering input to that same neuron (either directly or via proxy neurons), forming a cycle. This is sometimes done in practice and is called a \emph{Recurrent Neural Network (RNN)}, but is out of scope for this thesis. Instead, neurons will be organized in \emph{layers}, as shown in figure \ref{fig:neural-nework-structure}. %TODO
 
-Here, each layer contains numerous neurons, all of which are not connected to one another.
+\begin{figure}[htp]
+\centering
+\includegraphics[width=\textwidth]{images/network_layout.png}
+\caption{Structure of neuron arrangement in an ANN}
+\label{fig:neural-nework-structure}
+\end{figure}
 
-% The activation function's nonlinearity is what gives a network its power.
+% TODO back up claim that input layer is called "first and "lowest" layer
+% TODO use top-down image instead of left-right. Requires to reformulate the text a bit.
+Here, each layer contains numerous neurons, none of which share a connection. This means that there is no interaction within a layer and thus it seems reasonable to inspect the actions of a network in a layer-by-layer fashion. The layer on the left is often called the "first" or "lowest" layer, and it is the spot where the input data is feed into the network. Therefore, its neurons deviate from the description given in figure \ref{fig:artificial-neuron-schematic} and equations \eqref{eq:neuron-math-membrane-potential} and \eqref{eq:neuron-math-activation-function}. No computation takes place here, the data is taken as-is and used as input for the layer above.
 
-% Biologically inspired
-% Very popular
-% Successful
-% Neuron is a radial simplification % Disregard of time
-% Some math
-% Layered
-% Activation functions
-% Error function
+% TODO be more specific about the universal approximation theoren
+% TODO describe layers as homeomorphisms according to http://colah.github.io/posts/2014-03-NN-Manifolds-Topology/
+In the figure the layer above the input contains 3 neurons and is named "Hidden layer 1". Hidden layers are those that are neither input nor output and thus do not communicate with any system outside the network. Note that each neuron here has two indices: The first one designates the layer affiliation and the second one identifies the individual neuron. The first hidden layer is followed by a second one. A neural network can conceptually have an unlimited amount of hidden layers, but at least one is necessary to satisfy the \emph{universal approximation theorem} which attests that for every function, there exists a neural network that can approximate said function to a arbitrary but fixed accuracy\footnote{However, this is of limited practical use, since the theorem makes no statement about the required number of neurons, or how to set the weights.}.
+
+A further notational simplification can be made at this point. Equation \eqref{eq:neuron-math-membrane-potential} described the operation of a single neuron as an inner product. If we treat the output of \emph{Hidden layer 1} as a vector $\vec{x_0}$ and the output of \emph{Hidden layer 2} as another vector $\vec{x_1}$, the entire operation of the second hidden layer can be described by a matrix-vector product according to equations \eqref{eq:layer-math-membrane-potential} and \eqref{eq:layer-math-activation-function}.
+
+\begin{align}
+	\vec{m_1} &= \mat{W_{1}} \, \vec{x_0} \label{eq:layer-math-membrane-potential} \\
+	\vec{o_1} &= \sigma \braces{\vec{m_1}} \label{eq:layer-math-activation-function}
+\end{align}
+
+where $\sigma \braces{\vec{m_1}}$ indicates the element-wise application of the activation function to the membrane potentials. If the weight vectors used in equation \eqref{eq:neuron-math-membrane-potential} are used as row vectors of $\mat{W_1}$, then this is an equivalent description on a higher level of abstraction. This can of course be done analogously for the other layers of the network.
+
+Beyond biological plausibility, this formalism provides another justification for using activation functions at all. If they were not part of a neural network model, each layer would solely perform a matrix-vector product, which, due to their linear properties, could be collapsed into a single matrix-vector product, greatly reducing the model's capacity to describe complex relations between input data and output data.
+
+% TODO source for softmax function
+The last layer generates the output of the network. It too can in part be described as a matrix-vector product. It may also share the same activation function as other layers, in which case its functionality is mostly identical with hidden layers. However, this is sometimes inappropriate. In regression, for instance, the range of the function to be learned may go far into the negative range, well below $-1$. None of the activation functions shown in figure \ref{fig:activation-functions} are capable of modelling this. Similarly, in classification, it might be desirable for the output to represent the probabilities of an input belonging to each of the classes. While all of the discussed activation functions include the range $[0-1]$, thereby making such a representation possible, other activation functions specifically suited for output layers, like the \emph{softmax function}, can force those properties.
+
+% TODO Deep dream
+% TODO Akin to layered processing in vision
+% TODO Back up the claim that first layer is usually feature extractor / corner detector.
+The relatively recent machine learning trend going by the name of \emph{deep learning} builds extensively on this layered architecture of neural networks. Specifically, \emph{deep} neural networks use many more hidden layers than just 1, in contrast to the preceding networks, which were ex post named \emph{shallow} networks. The central hypothesis of this approach is that the various layers of a network will learn to perform distinct, hierarchically structured functions. Typically, the first layer (or first few layers) are expected to become low-level feature extractors, providing basic information for the higher layers. In vision tasks, for example, one can often observe that the lowest layer works as a corner detector, because the geometry within an image often contains the most important information. The following layers the hopefully extract features with an increasing level of abstraction, e.g. combining corners to edges and more complex shapes and contours. The last layer is tasked with making the final decision regarding the input object's class, using the presence of those high-level features as the basis for its choice.
+
+% TODO some networks make use of this? Sure its not all of them?
+% TODO glorot formula
+% TODO caffe does glorot initialization slightly differently
+One question that has not been addressed yet is how to actually set the weights. Under normal circumstances there is no closed form solution to compute the optimal parameters for a model. Thus, an training process that starts with a random set of weights and then iteratively improves on them is used. To accomplish random initialization, values for all weights are drawn from one of various distributions. Common choices are uniform, normal distributions. In 2010, a more sophisticated method has been proposed in \cite{glorot-understanding-deep-nn-training}. It still relies on a uniform initialization, but the limits are set for each layer individually, in order to retain the variance the data as it flows through the layers of the network. Some networks in this thesis make use of this advanced initialization.
+
+In order to improve the thusly initialized weights, it is first necessary to define a way to quantify how well (or poorly) a given set of parameters performs. To this end, an \emph{loss function} (also called \emph{objective function} or \emph{error function}) is used, which combines the predictions of a network with the training labels to provide an estimate of its performance. In other words, it is a function that maps labeled input data and the parameters to a scalar value. A common loss function is the \emph{Mean Squared Error (MSE)} given in equation \eqref{eq:mse}, where $N$ is the number of data points and $\vec{\hat Y}$ and $\vec{Y}$ are vectors containing the prediction and true label, respectively. In multinomial classification tasks, the \emph{cross entropy} loss given in equation \eqref{eq:cross-entropy-loss} \cite{caffe-cross-entropy} is a good choice if the predictions for all classes are to be interpreted as probabilities (meaning they are required to add up to 1). Here, $\vec{\hat Y}$ is a matrix containing all predicted class probabilities for all $N$ data points and $\vec{Y}$ is a vector indicating the true class.
+
+% TODO source for MSE
+% TODO make this more readable
+\begin{align}
+	\text{MSE} &= \frac{1}{N} \sum_{i=1}^N \braces{\vec{\hat Y}_i - \vec{Y}_i}^2 \label{eq:mse} \\
+	\text{Cross entropy} &= \frac{-1}{N} \sum_{i=1}^N \log{\braces{\mat{\hat Y}_{i, \vec{Y}_i}}} \label{eq:cross-entropy-loss}
+\end{align}
+
+The goal of neural network training is usually to minimize the loss function (although it could be maximization depending on the formulation of the loss function).
+
+%% Biologically inspired
+%% Very popular
+%% Successful
+%% Neuron is a radical simplification
+% Neural networks discard time
+%% Some math
+%% Layered
+%% Activation functions
+%% Error function
 % Gradient descent
-% Deep learning
-% Recurrent vs. feed-forward
+%% Deep learning
+%% Recurrent vs. feed-forward
 
 \subsection{Convolutional Neural Networks}
 A special kind of ANN that has proven to be particularly effective on image data is the \emph{Convolutional Neural Network (CNN)}.
@@ -190,9 +237,10 @@ A special kind of ANN that has proven to be particularly effective on image data
 
 
 % Googlenet
+% Describe data sets
 
 \bibliographystyle{alpha}
-\bibliography{ref,image_ref}
+\bibliography{ref,image-ref}
 
 \end{document}
 
