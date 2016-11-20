@@ -206,7 +206,20 @@ In order to improve the thusly initialized weights, it is first necessary to def
 	\text{Cross entropy} &= \frac{-1}{N} \sum_{i=1}^N \log{\braces{\mat{\hat Y}_{i, \vec{Y}_i}}} \label{eq:cross-entropy-loss}
 \end{align}
 
-The goal of neural network training is usually to minimize the loss function (although it could be maximization depending on the formulation of the loss function).
+% TODO possible source for gradient descent: "Stochastic Gradient Descent Learning in Neural networks"
+The goal of neural network training is usually to minimize the loss function (although it could be maximization depending on the formulation of the loss function). This is most often accomplished with a \emph{stochastic gradient descent} on the loss function mentioned above w.r.t the weights of the network\footnote{In practice, the gradient w.r.t a lot of weights can be computed very efficiently by exploiting properties of the chain rule, a method known as \emph{Backpropgation}, or Backprop for short.}. A simple, one-dimensional case is given in figure \ref{fig:gradient-descent}.
+
+% TODO reduce the borders within the image
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.7\textwidth]{images/gradient_descent.png}
+	\caption{Illustration of the gradient descent method}
+	\label{fig:gradient-descent}
+\end{figure}
+
+Starting at an arbitrary point, the gradient always points in the direction of steepest ascent. The idea of a gradient descent is to move the parameters (in this case the weights) into the opposite direction in order to descend the slope of the loss function. Following the left-oriented green arrow, the network with parameters corresponding to the blue dot would adopt the parameters corresponding to the transparent variant slightly to the left, resulting in a reduced loss. This process is iterated many times in order to hopefully reach a minimum that represents a good solution to the training process.
+
+The magnitude of the gradient us usually used as an indication of how much the weights should be changed. Note that there can be many complications, for instance, if the blue dot had started to the left of the local maximum near the right side, it might have found a smaller local minimum than the one marked in figure \ref{fig:gradient-descent}.
 
 %% Biologically inspired
 %% Very popular
@@ -217,14 +230,65 @@ The goal of neural network training is usually to minimize the loss function (al
 %% Layered
 %% Activation functions
 %% Error function
-% Gradient descent
+%% Gradient descent, Backpropagation
 %% Deep learning
 %% Recurrent vs. feed-forward
 
 \subsection{Convolutional Neural Networks}
-A special kind of ANN that has proven to be particularly effective on image data is the \emph{Convolutional Neural Network (CNN)}.
+% TODO rewrite this paragraph. It sucks.
+% TODO are really ALL networks in this thesis CNNs?
+A special kind of ANN that has proven to be particularly effective on image data is the \emph{Convolutional Neural Network (CNN)}. All networks used in this thesis are CNNs. They differ from conventional networks in the way some of the layers function. CNNs contain \emph{convolutional layers}, which, as the name implies, perform convolutions on the incoming data. In a way, the weight matrix that connects the layer's neurons with the neurons of the previous layer is replaced with \emph{kernels} or \emph{filters}, with which the incoming data is convolved. A schematic representation of this procedure is given in figure \ref{fig:convolutional-layer}.
 
-% Training with gradient descent
+% TODO activation function
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.8\textwidth]{images/convolution_layer.png}
+	\caption{Schematic of a convolutoinal layer's functionality}
+	\label{fig:convolutional-layer}
+\end{figure}
+
+The easiest way to understand this is to imagine the left part as an input image of size $4 \times 8$, with an immediately following convolutional layer. In this example, the convolutional layer has one filter of size $3 \times 3$, though other sizes are possible. Since these are 2 arrays of two-dimensional shape, the computation of the convolutional layer's output can be computed by a two-dimensional convolution, save for possible activation functions. As can be seen in figure \ref{fig:convolutional-layer}, this produces an output of size $2 \times 6$. The size reduction is a consequence of neglect to deal with the edges of the input image, the filter is only centred on those areas where the input is completely defined\footnote{While the reduction from $4 \times 8$ to $2 \times 6$ may seen extreme, it is worth mentioning that the number of pixels "lost" only grows with the \emph{circumference} of the input data, so for a more reasonably sized image, the output map will only be slightly smaller.}.
+
+However, the figure also indicates that there is a different, connectionist perspective on this process. In this view, the neurons on the right still connect to the preceding neurons with weights and compute an inner product. There are 2 major differences to a conventional layer. First, each neuron is only connected to 9 input values, instead of all of them, leading to the first considerable reduction in the number of weights that need to be trained. Second, all neurons use \emph{the same weights} to connect to their (distinct) 9 inputs, giving rise to the term \emph{weight sharing}. This again greatly reduces the number of weights, to a constant count of 9, regardless of the size of the previous layer. For a quick comparison, a conventional layer with 12 neurons would lead $12 \cdot 32 = 384$ parameters. Additionally, in contrast to the constancy of the 9 weights in a convolutional layer, this figure would grow with the product of both layer sizes. For an image size with practical applications, this rapidly becomes impractical.
+
+% TODO source for the claim that most information in images emerges from local features
+Using a convolutional layer does not just reduce the number of parameters that require training, but also tailors the network's structure to the specific properties of image related tasks. Since each neuron in a convolutional layer is connected only to a small, contiguous region of the input image, the learning algorithm is forced to train the kernel weights in such a way that they focus on local features. Since a lot of distinctive information in images such as edges, corners and textures emerges from local features, this mechanism confers the benefit that data not relevant to those features is implicitly ignored. This shares some similarities with the concept of receptive fields human vision, which are also local.
+
+The convolutional layers of the CNNs used in this thesis and in practice are slightly more complicated than the above explanation suggests. If a convolutional layer had only used kernel, it would only be able to extract a single feature from the input data. Because this is insufficient, convolutional layers generally have numerous kernels, each of which gets convolved with the input independently, producing multiple outputs called \emph{maps}. Concordantly, a convolutional layer is able to receive multiple maps as input. The scenario with multiple input and output maps is depicted in figure \ref{fig:convolutional-layer-maps}.
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[scale=1.00]{images/convolution_layer_maps.png}
+	\caption{Schematic of a convolutional layer with multiple input and output maps}
+	\label{fig:convolutional-layer-maps}
+\end{figure}
+
+On the left side we see 3 input maps. On the lowest layer, the input maps correspond to the 3 color channels red, green and blue\footnote{When using a grayvalue image, there is only 1 channel and therefore only 1 map}. On the right side the convolutional layer produces 2 output maps. The process for computing one such output map is as follows: First of all, each input map gets convolved with a filter that is unique to that map (and to the output map. The resulting arrays are summed up to form one array of the correct shape. Depending on the network layout, processing the array element-wise with an activation function may be a part of this step. This process is performed multiple times with distinct filters, depending on how many output maps are desired. Since for every pair of an input map and an output map there is exactly one filter, the total number of filters in a convolutional layer is $M \cdot N$, where $M$ and $N$ are the counts of input and output maps, respectively.
+
+% TODO Source for Max-Pooling
+The parcimony with free parameters required by a convolutional layer to produce an output map makes it feasible to use many filters and consequently produce a great deal of output maps. This empowers the CNN with considerable modeling capacity, but also poses the challenge of dealing with all that generated output. CNNs have one more mechanism at their disposal to solve this specific problem. To reduce the dimensionality of the feature maps, they use \emph{pooling} layers, which execute subsampling on the maps as indicated by figure \ref{fig:pooling-layer}.
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[scale=1.00]{images/pooling_layer.png}
+	\caption{Schematic of a pooling layer downsizing an input map}
+	\label{fig:pooling-layer}
+\end{figure}
+
+The input is located to the left and comprises 32 neurons arranged in a two-dimensional $4 \times 8$ array. The pooling layer condenses the information to 8 neurons in a $2 \times 4$ array. This is done by segmenting the input into regions that do not necessarily need to be disjoint or cover the entire input. Each of these segments covers a small, usually rectangular region of the input. An operation that reduces all values in a segment to a single value is then applied. All scalars from each segment together constitute the output of the pooling layer. Common reduction operations include averaging and taking the maximum. The networks in this thesis exclusively use the latter.
+
+As one can see the amount of data has been greatly reduced. However, if pooling is applied to the output maps of a convolutional layer, it is reasonable to assume that critical information is retained. Unless the input image contains very high frequency information apart from noise, the convolutions should yield similar values at adjacent points. A max pooling operation then would simply select the best match for a given feature. Besides greatly reducing the amount of data to be handled, this method also confers the benefit that translational invariance is increased since the exact location of a specific feature is discarded by the pooling.
+
+%Translation invariance
+
+%% Focus on local features
+%% Receptive field
+%% Usefulness in image processing
+%% Weight sharing -> Efficient use of free parameters
+%% No edge treatment
+%% More than one filter per conv layer
+%% Channels and maps
+%% Max-Pooling
 
 \section{Adversarial Examples}
 \label{sec:adversarial-examples}
