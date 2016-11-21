@@ -15,6 +15,7 @@
 \usepackage{xcolor}
 \usepackage{setspace}
 
+% TODO replace some of these \newcommands with \DeclareMathOperators
 \newcommand\braces[1]{\left(#1\right)}
 \newcommand\brackets[1]{\left[#1\right]}
 \renewcommand{\vec}[1]{\underline{#1}}
@@ -31,6 +32,7 @@
 \newcommand\variance[1]{\mathbb{V}\braces{#1}}
 \newcommand\setequal{\overset{!}{=}}
 \newcommand{\gerquote}[1]{\glqq#1\grqq}
+\DeclareMathOperator{\sign}{sign}
 \definecolor{AI-BLUE}{rgb}{0,0.57,0.87}
 
 \onehalfspacing
@@ -80,6 +82,8 @@
 
 \newpage
 \section{Introduction}
+\label{sec:introduction}
+
 As the problems people try to solve with the aid of computers become more and more complex, their ability to write software that can keep up with those aspirations does not follow suit. Solving more complex problems with software does not only incur the cost of finding viable solutions and formalizing them in computer code, but also the cost of integrating all the necessary components, organizing their interactions, ensuring they use common resources in a well-defined manner, and testing all of the above. These tasks grow essentially super-linearly in difficulty, and can thus quickly become harder than the problem that the system was initially meant to solve.
 
 One way out of this dilemma that people turn to increasingly often is the usage of machine learning techniques. The goal of machine learning is to free people from the burden of finding and programming a solution. In order to do so, a \emph{model} is defined which embodies the structure of a possible solution on a highly abstract level. However, such a model as potentially a myriad of \emph{parameters}, and no knowledge of reasonable values for those parameters can be assumed. What gives machine learning its name and makes it feasible despite the many unknown parameters is the learning method. This is a method to find a working configuration of parameters based on \emph{training data}. In \emph{supervised learning}, the algorithm that performs the learning is provided numerous pairs of an exemplary input and the corresponding desired output that the model should deliver. From these pairs, it extracts, or \emph{learns}, the relationship between input and output data, and codifies it in the model's parameters. In this manner, the need for a handcrafted solution is eliminated. The downside to this approach is that learning algorithms usually require a copious amount of training data to find good parameters. However, this drawback is increasingly often offset by the reduced software complexity, since machine learning models usually have a well-defined theoretical foundation with ready-made software available.
@@ -154,7 +158,7 @@ Take note of the fact that the very first step performed on the input is essenti
 	\label{fig:activation-functions}
 \end{figure}
 
-Out of these, the easiest to justify is the logistic sigmoid. If the output is to represent the neuron's firing rate, it must not become negative, and it must saturate because of the refractory period required by biological cells. Under these conditions, the logistic function is a simple continuous choice. The hyperbolic tangent is a linearly transformed version of this. While its negative range may be harder to interpret biologically, the option to output negative values may relieve the trainable parameters of a network of some demand for computational power, thus facilitating training. Despite being non-continuous and having no upper bound, the ReLU is the most popular activation function according to \cite{deep-learning-2015}. The networks utilized in this thesis mostly make use of the $\tanh$ and ReLU activation functions.
+Out of these, the easiest to justify is the logistic sigmoid. If the output is to represent the neuron's firing rate, it must not become negative, and it must saturate because of the refractory period required by biological cells. Under these conditions, the logistic function is a simple continuous choice. The hyperbolic tangent is a linearly transformed version of this. While its negative range may be harder to interpret biologically, the option to output negative values may relieve the trainable parameters of a network of some demand for computational power, thus facilitating training. Despite being non-continuous and having no upper bound, the ReLU is the most popular activation function according to \cite{deep-learning}. The networks utilized in this thesis mostly make use of the $\tanh$ and ReLU activation functions.
 
 Since a single neuron as described above consists only of an inner product and a one-dimensional non-linearity, its computational power is limited. Artificial neural networks rely on thousands of neurons to perform their tasks. This gives rise to the question of how to connect all those neurons. Conceptually, one could link them up in such a way that a neuron that receives input from another neuron while at the same time delivering input to that same neuron (either directly or via proxy neurons), forming a cycle. This is sometimes done in practice and is called a \emph{Recurrent Neural Network (RNN)}, but is out of scope for this thesis. Instead, neurons will be organized in \emph{layers}, as shown in figure \ref{fig:neural-nework-structure}. %TODO
 
@@ -292,11 +296,74 @@ As one can see the amount of data has been greatly reduced. However, if pooling 
 
 \section{Adversarial Examples}
 \label{sec:adversarial-examples}
-% Generalization across different models and data sets
+
+% TODO might Neural Representation and Neural Computation be a good cite for this?
+% TODO is dynamic-field-theory-movement-preparation a good cite?
+% TODO cite more things, especially for the molecular modelling
+In trying to recreate the learning power of the human brain on a computer, one can focus on various levels of abstraction. A system could potentially model all the chemical processes that happen within and around cells and their synapses on a molecular level. Less drastically, one could work with aggregates and averages of these values in order to retain most of the biological components and create a time-dependent system this way. Alternatively, larger groups of neurons could be used as the basic building blocks for a larger system \cite{dynamic-field-theory-movement-preparation}, operating on a level of high abstraction from chemical processes.
+
+% TODO source for state-of-the-art claim
+% TODO source for surpassing human performance
+The connectionist view is based on the proposition that ANNs as described in section \ref{sec:introduction} model the functionally relevant processes in biological brains in sufficient detail. Such systems have shown state-of-the-art performance on diverse tasks, in some cases even surpassing human performance. One important property that is required of machine learning models is the ability to \emph{generalize}. If given training data and the desired labels, a neural network should not merely learn to classify this specific data\footnote{This could be solved perfectly by just storing the data and the label}, but also learn to correctly classify new and unseen data, so long as it is reasonably similar to the training data, even if the specifics vary.
+
+% TODO illustration of training and test, e.g. flowchart
+To probe a model's generalization ability, a part of the available data is usually withheld from training, effectively making it unseen data. After training, the networks performance on this set can be evaluated to obtain an estimate of its performance in practice. Even though training and test data may be a bit stronger correlated than the training data and the input in a productive environment\footnote{For instance due to changes in illumination or camera equippment}, ANNs have shown reasonable generalization ability.
+
+% TODO source for calling under scrutiny
+However, some discoveries have called this ability under scrutiny. A recent paper \cite{intriguing-properties-of-neural-networks} demonstrated that a state-of-the-art neural network can be tricked into misclassifying an input image by applying minuscule changes, even small enough to be imperceptible by humans. The thusly altered images are called \emph{adversarial examples (AEs)}. Their existance is problematic because from a generalization standpoint the minimum requirement would be that a network classifies visually indistinguishable images identically if it has a high confidence on one of them. However, network confidence is not an obstacle to finding AEs, they exist even for images where the network makes a certain and correct class affiliation assertion. Figure \ref{fig:intriguing-properties-ae} shows such an adversarial example\footnote{even though \cite{intriguing-properties-of-neural-networks} contains a link to full-resolution images, it is dysfunctional as of the time of this writing (Error 404)}.
+
+\begin{figure}[htp]
+\centering
+	\includegraphics[width=\textwidth]{images/intruiging_properties_ae.png}
+	\caption{Original image (left) and adversarial example (right, classified as \emph{ostrich, Struthio
+camelus}) with magnified difference in the middle, as presented in \cite{intriguing-properties-of-neural-networks}}
+	\label{fig:intriguing-properties-ae}
+\end{figure}
+
+It is apparent that the function represented by the network is undesirably discontinuous and lacking in smoothness, leading to strongly fragmented classification regions. Adversarial examples can exist as a result, they occupy regions proximal to to training points in the data manifold, but on the other side of such a discontinuity. Naturally, the question arises how to find such perturbations given a (training or test) image. In \cite{intriguing-properties-of-neural-networks}, this is posed as an optimization problem according to equations \eqref{eq:ae-formalization-minimize} - \eqref{eq:ae-formalization-valid}.
+
+% TODO \vec and \mat
+\begin{align}
+	\text{Minimize $\norm{r}_2$ s.t.} \label{eq:ae-formalization-minimize} \\
+	f(x + r) &= l \label{eq:ae-formalization-label} \\
+	x + r &\in \brackets{0, 1}^m \label{eq:ae-formalization-valid}
+\end{align}
+
+Here, $x$ is the given image, $r$ its perturbation, $f$ the function embodied by the network, l the desired (wrong) label and $m$ the size of the flattened pixel vector. Approximate solutions to this problem were obtained for various images and target labels with the L-BFGS algorithm.
+
+The major drawback of this approach is the required computation time to generate the adversarial examples. In order to study AEs and their properties in a quantative way and obtain significant statistical figures, this is insufficient. Fortunately, a much more efficient method was proposed in \cite{explaining-and-harnessing-adversarial-examples}. The fundamental idea is to optimize the input layer much like the parameters of the network, but with a different goal in mind. In order to understand the specifics of the process, consider the formalization\footnote{Some variable names have been changed to for consistency with equations \eqref{eq:ae-formalization-minimize} - \eqref{eq:ae-formalization-valid}} in equation \eqref{eq:fast-gradient-sign-method}.
+
+\begin{align}
+	r &= \epsilon \sign \braces{\nabla_x J\braces{\theta, x, l}} \label{eq:fast-gradient-sign-method}
+\end{align}
+
+Here, $J$ denotes the loss function, $\theta$ the parameters of the network, and $\epsilon$ a strength modulation parameter. $x$, $l$ and $r$ again stand for the original image, label and perturbation, respectively. In words, the formula takes the gradient of the loss function w.r.t. the input, applies the signum function and scales the result.
+
+Using the gradient of $J$ w.r.t. $x$ is easily motivated: If one choses an untrue $l$, this provides the direction in which the input should be changed in order to convince or dissuade the ANN to predict $l$ for this input, depending on whether $r$ will be added to or subtracted from $x$. The signum function is used to normalize the norm of the gradient. Assuming a linearization around $x$, adding $r$ corresponds to traversing the input space towards a prediction of label $l$, with $\epsilon$ denoting the distance traveled. In \cite{explaining-and-harnessing-adversarial-examples}, this is called the \emph{fast gradient sign method} (FGSM)\footnote{the shorthand is not part of the publication} for generating adversarial examples. An example for an AE generated with this method is shown in figure \ref{fig:harnessing-ae}.
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=\textwidth]{images/harnessing_ae.png}
+	\caption{Original image (left) and adversarial example (right, classified as \emph{gibbon} with $99.3\%$ confidence) with magnified perturbation in the middle, as presented in \cite{explaining-and-harnessing-adversarial-examples}}
+	\label{fig:harnessing-ae}
+\end{figure}
+
+% Iterative process
+% This procedure can be efficiently done via backprop
+
+% Die Existenz von AEs der Nichtlinearität eines Netzwerks zuzuschreiben ist naheliegend
+% AEs reside in low-probability regions in the data manifold
+
+%% What are they
+% How are they created (two ways)
+%% Why is their existence surprising?
+% Deviation from the data manifold?
 % They tried to use AEs to train the network to be more resistant, didn't work
 % Theoretical ramifications for human vision
-% How does the explanation given in "Harnessing AEs" relate to CNNs?
+% Why do they exist? (strongly fragmented classification regions outside data manifold, lacking smoothness)
 % Linear explanation for AE's existence
+% How does the explanation given in "Harnessing AEs" relate to CNNs?
+% Generalization across different models and subsets of the data used in training
 
 
 
@@ -312,7 +379,12 @@ As one can see the amount of data has been greatly reduced. However, if pooling 
 % List of tables
 % List of acronyms
 
+% TODO TODOS
+% Be consistent with whether figure captions end with a dot or not.
+% Consistent variable names etc.
 
+% Source for CNN performance on image processing tasks
+% Alex Krizhevsky, Ilya Sutskever, and Geoff Hinton. Imagenet classification with deep convolutional neural networks. In Advances in Neural Information Processing Systems 25, pages 1106–1114, 2012
 
 
 
