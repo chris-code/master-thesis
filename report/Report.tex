@@ -14,6 +14,7 @@
 \usepackage{units}
 \usepackage{xcolor}
 \usepackage{setspace}
+\usepackage{subcaption}
 
 % TODO replace some of these \newcommands with \DeclareMathOperators
 \newcommand\braces[1]{\left(#1\right)}
@@ -115,8 +116,18 @@ The aforementioned results will be obtained with multiple data sets and various 
 %% What this thesis is about
 % Future prospects
 
+
+
+
+
+
+
+
+
+
 \newpage
 \section{Artificial Neural Networks}
+\label{sec:artificial-neural-networks}
 In the area of machine learning, artificial neural networks are some of the most widely studied models. They stem from insights into the workings of real, biological brains in the field of neural biology. Here, the individual neuron is used as the fundamental unit of computation. A schematic version of the biological variant is shown in figure \ref{fig:biological-neuron-schematic}.
 
 \begin{figure}[htp]
@@ -238,6 +249,15 @@ The magnitude of the gradient us usually used as an indication of how much the w
 %% Deep learning
 %% Recurrent vs. feed-forward
 
+
+
+
+
+
+
+
+
+
 \subsection{Convolutional Neural Networks}
 % TODO rewrite this paragraph. It sucks.
 % TODO are really ALL networks in this thesis CNNs?
@@ -339,8 +359,11 @@ The major drawback of this approach is the required computation time to generate
 
 Here, $J$ denotes the loss function, $\theta$ the parameters of the network, and $\epsilon$ a strength modulation parameter. $x$, $l$ and $r$ again stand for the original image, label and perturbation, respectively. In words, the formula takes the gradient of the loss function w.r.t. the input, applies the signum function and scales the result.
 
+% TODO be more precise about what gets linearized, and better describe what all this math jazz does in the input space
+% TODO the fact that r gets added to x should pop up in an equation somewhere, e.g. i' = i +- \epsilon sign(...) or o' = i +- r
 Using the gradient of $J$ w.r.t. $x$ is easily motivated: If one choses an untrue $l$, this provides the direction in which the input should be changed in order to convince or dissuade the ANN to predict $l$ for this input, depending on whether $r$ will be added to or subtracted from $x$. The signum function is used to normalize the norm of the gradient. Assuming a linearization around $x$, adding $r$ corresponds to traversing the input space towards a prediction of label $l$, with $\epsilon$ denoting the distance traveled. In \cite{explaining-and-harnessing-adversarial-examples}, this is called the \emph{fast gradient sign method} (FGSM)\footnote{the shorthand is not part of the publication} for generating adversarial examples. An example for an AE generated with this method is shown in figure \ref{fig:harnessing-ae}.
 
+% TODO discuss how the difference is much more like white noise compared to the L-BGFS produced
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=\textwidth]{images/harnessing_ae.png}
@@ -348,22 +371,79 @@ Using the gradient of $J$ w.r.t. $x$ is easily motivated: If one choses an untru
 	\label{fig:harnessing-ae}
 \end{figure}
 
-% Iterative process
-% This procedure can be efficiently done via backprop
+Of course, linearization of the loss function (which includes the entire network) around $x$ is a rather strong assumption\footnote{Below we will discuss a linear explanation for the existence of adversarial examples, but it does not easily translate to a one-step ae generation algorithm that relies on linearity of the \emph{entire} network}. Rather than making one big leap in the input space, one can easily turn this approach into an iterative procedure of multiple small steps, in the manner of a proper gradient descent. This way, one is able to find nearby AEs even if the linearity assumption is inapplicable, or gives a poor approximation.
 
-% Die Existenz von AEs der Nichtlinearität eines Netzwerks zuzuschreiben ist naheliegend
-% AEs reside in low-probability regions in the data manifold
+% TODO describe iterative algorithm
+
+Even though the FGSM is considerably more efficient compared to the L-BGFS method, repeatedly executing it over numerous iterations again poses the challenge of computation time. At this point it is crucial to realize that the gradient $\nabla_x J$ can be computed efficiently with backpropagation, just like the gradient w.r.t $\theta$. Conceptually, the input can be considered to be just another layer positioned below the first layer of an ANN, merely necessitating another application of the chain rule\footnote{Most neural network software by default won't compute the gradient for the input because it is usually unnecessary. Caffe provides a flag to trigger this computation}. For maximum efficiency, one could even try to integrate AE generation into regular backprop training, with the (possibly minor) complication that AE generation with multiple iterations would be performed in relation to a network with changing weights\footnote{this was not tested in this thesis}.
+
+% TODO source for resistance against distortions and noise
+The existence of adversarial examples naturally begs the question how they are even possible and what parts of a model they can be attributed to. They are a surprise since strict splits into training and test sets were believed to vouch for the generalization abilities of ANNs. Experiments with distorted and noisy input data point in the same direction. Since these methods fail to find significant and systematic flaws in neural networks, it is apparent that adversarial examples reside in narrow, low-probability regions of the data distribution, therefore requiring a directional instead of a randomized search.
+
+% TODO better source for linear classifier succeptability to AEs than breaking-linear-classifiers-on-imgagenet
+% TODO image from breaking-linear-classifiers-on-imgagenet to show linear classifier AEs
+Since AEs hint at precipitous discontinuities in the input-output map realized by the network, it is inviting to blame them on the nonlinear nature of neural networks. However, as pointed out in \cite{breaking-linear-classifiers-on-imgagenet}, even unequivocally linear models such as a softmax linear classifier are succeptable to adversarial examples. An explanation that doesn't require the assumption of neural networks heavily relying on their nonlinear powers was suggested in \cite{explaining-and-harnessing-adversarial-examples}.
+
+This explanation focuses entirely on the linear components of an ANN and high-dimensional input data. Going back to the neuron model layed out in section \ref{sec:artificial-neural-networks}, equations \eqref{eq:neuron-math-membrane-potential} - \eqref{eq:neuron-math-activation-function}, the output of a single unit is computed according to
+
+% TODO better variable names here as well
+\begin{align}
+	o &= \sigma \braces{\vec{w}^T \vec{i}}
+\end{align}
+
+where $\vec{w}$ is the weight vector, $\vec{i}$ an input vector of the same size, $\sigma$ the logistic sigmoid activation function. Lastly, $o$ is the output and the value we want to fudge. Note that $\vec{w}^T \vec{i}$ is simply an inner product, and therefore linear. If the inner product is large, $o$ will approach $1$, and if it reaches very far into the negative range it will approach $0$. Since $\vec{i}$ is the only variable we have control over, this is what we need to use to modify $o$.
+
+% TODO just even $n$, not only powers of 2?
+To simplify the scenario, binary vectors $\vec{i}, \vec{w} \in \brackets{0,1}^n$, where $n$ is a power of 2 are considered. This is not a technical necessity and the steps described below would work just the same\footnote{Safe for the coefficient introduced below which would need to scale with the size of the elements of $\vec{i}$}, but it makes for an easily described system. Since the order of the elements of the vectors does not matter, a somewhat orderly weight vector is chosen where the first half contains $+1$ elements and the second half $-1$ elements, so $\vec{w} = \brackets{+1 +1 \dots -1 -1}$. Meanwhile, consider an input of alternating binaries, $\vec{i} = \brackets{+1, -1, +1, -1 \dots}$. In this case, $\vec{w}^T \vec{i} = 0$ holds for symmetry reasons, meaning the neuron is in an undecided state. There is nothing wrong with that, but to fully unfold the effect that is to be demonstrated, the last 4 elements of the input vector are always set to $+1$, leading to $\vec{w}^T \vec{i} = -4$ and subsequently $\sigma \braces{\vec{w}^T \vec{i}} \approx 0.0180$, independently of $n$. This is depicted in figure \ref{fig:ae-explanation} for various powers of $2$ as $n$.
+
+% TODO stack vertically for better readability
+\begin{figure}[htp]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{ae_explanation_ip.png}
+        \caption{Inner product of original and adversarial input}
+        \label{fig:ae-explanation-inner-product}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{ae_explanation_output.png}
+        \caption{Neuron output for original and adversarial input}
+        \label{fig:ae-explanation-neuron-output}
+    \end{subfigure}
+    \caption{Inner product and neuron output depending in data dimensionality}
+    \label{fig:ae-explanation}
+\end{figure}
+
+% TODO add a table that shows the same data as the image
+
+For the given input, the neuron is firmly in the off-state. In order to change it to the on-state, the inner product needs to be increased and move into the positive region. Simply put, the inner product will be positive when the input is positive where the weight vector is positive, and negative where the weight vector is negative. Indeed, one could simply set $\vec{i} \coloneqq \sign \braces{\vec{w}}$ since this always fulfills the requirement\footnote{The $\sign$ function is only given to sustain the universality of the approach. Since $\vec{w}$ is a binary vector here, it serves no purpose in this specific context.}. However, that is not a helpful approach when trying to create an adversarial example for the input, since $\vec{i}$ might be vastly different from $\sign \braces{\vec{w}}$. But it is a viable option to change $\vec{i}$ slightly so that it becomes more similar to the sign of the weights. This is described by equation \eqref{eq:ae-explanation-formula}.
+
+% TODO maybe use c instead of \epsilon in eq:fast-gradient-sign-method. It should be the same letter and c is much better.
+\begin{align}
+	\vec{\hat i}&= \vec{i} + c \cdot \sign \braces{\vec{w}} \label{eq:ae-explanation-formula}
+\end{align}
+
+% Note that all of this is similar to the FGSM, but only tries to trick one neuron instead of the network output, and therefore operates on the weight vector instead of the gradient. Can be considered a crude variant of FGSM.
+Here, $\vec{\hat i}$ denotes an adversarial example and $c$ is a strength modulation coefficient. It is not surprising that it resembles equation \eqref{eq:fast-gradient-sign-method} for the FGSM, since the goals are similar. But while FGSM tries to trick an entire network, this equation merely tries to change the output of a single neuron in order to demonstrate the susceptibility of (partly) linear models to adversarial perturbation. Since it does not need to take into account how the neuron's output is processed in higher layers of the network, it doesn't operate on the gradient but simply on the weight vector.
+
+The effect of this perturbation is also shown in figure \ref{fig:ae-explanation} for a value of $c = 0.001$. As \ref{fig:ae-explanation-inner-product} demonstrates, the strength of the perturbation's effect on the inner product increases with $n$. It is not surprising that a change of constant size to each element amounts to more the larger the vector is, but what is surprising is the strength of this effect. As figure \ref{fig:ae-explanation-neuron-output} indicates, the critical point where the perturbation forces the neuron into the on-state is located around $n = 4096$.
+
+However, when examining both \ref{fig:ae-explanation-inner-product} and \ref{fig:ae-explanation-neuron-output}, one can see tat there is a significant visual discrepancy. The critical point around $4096$ is still in a region where the curve for the inner product is still very flat. This gives reason to believe that with a slight increase in data dimensionality, the method could find adversarial examples for input data that leads much more confidently to an off-state decision (remember that the original inner product was merely $-4$). It is also worth considering just how small of a change $c = 0.001$ implies. Since the vectors are binary, a change of $0.001$ per element means that each element's value gets changed by only $\frac{1}{1000}$ of its scale. This is a trade-off between dimensionality and $c$, larger input allows for a smaller $c$ while smaller input requires a larger $c$.
 
 %% What are they
-% How are they created (two ways)
+%% How are they created (two ways)
 %% Why is their existence surprising?
-% Deviation from the data manifold?
-% They tried to use AEs to train the network to be more resistant, didn't work
+%% Deviation from the data manifold?
+% They tried to use AEs to train the network to be more resistant, didn't work (but improved generalization)
 % Theoretical ramifications for human vision
-% Why do they exist? (strongly fragmented classification regions outside data manifold, lacking smoothness)
-% Linear explanation for AE's existence
+%% Why do they exist? (strongly fragmented classification regions outside data manifold, lacking smoothness)
+%% Linear explanation for AE's existence
 % How does the explanation given in "Harnessing AEs" relate to CNNs?
 % Generalization across different models and subsets of the data used in training
+% Relate existence of AEs with homeomorphism-likeness of ANNs
+% Points from the summary of Harnessing Adversarial Examples
+% How do _I_ create them? The thing with the iterations-dependent coefficient...
 
 
 
