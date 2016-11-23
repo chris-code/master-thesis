@@ -351,6 +351,7 @@ It is apparent that the function represented by the network is undesirably disco
 
 Here, $x$ is the given image, $r$ its perturbation, $f$ the function embodied by the network, l the desired (wrong) label and $m$ the size of the flattened pixel vector. Approximate solutions to this problem were obtained for various images and target labels with the L-BFGS algorithm.
 
+\subsection{Fast Gradient Sign Method}
 The major drawback of this approach is the required computation time to generate the adversarial examples. In order to study AEs and their properties in a quantative way and obtain significant statistical figures, this is insufficient. Fortunately, a much more efficient method was proposed in \cite{explaining-and-harnessing-adversarial-examples}. The fundamental idea is to optimize the input layer much like the parameters of the network, but with a different goal in mind. In order to understand the specifics of the process, consider the formalization\footnote{Some variable names have been changed to for consistency with equations \eqref{eq:ae-formalization-minimize} - \eqref{eq:ae-formalization-valid}} in equation \eqref{eq:fast-gradient-sign-method}.
 
 \begin{align}
@@ -377,9 +378,12 @@ Of course, linearization of the loss function (which includes the entire network
 
 Even though the FGSM is considerably more efficient compared to the L-BGFS method, repeatedly executing it over numerous iterations again poses the challenge of computation time. At this point it is crucial to realize that the gradient $\nabla_x J$ can be computed efficiently with backpropagation, just like the gradient w.r.t $\theta$. Conceptually, the input can be considered to be just another layer positioned below the first layer of an ANN, merely necessitating another application of the chain rule\footnote{Most neural network software by default won't compute the gradient for the input because it is usually unnecessary. Caffe provides a flag to trigger this computation}. For maximum efficiency, one could even try to integrate AE generation into regular backprop training, with the (possibly minor) complication that AE generation with multiple iterations would be performed in relation to a network with changing weights\footnote{this was not tested in this thesis}.
 
+\subsection{Linear explanation of Adversarial Examples}
+\label{subsec:ae-linear-explanation}
 % TODO source for resistance against distortions and noise
 The existence of adversarial examples naturally begs the question how they are even possible and what parts of a model they can be attributed to. They are a surprise since strict splits into training and test sets were believed to vouch for the generalization abilities of ANNs. Experiments with distorted and noisy input data point in the same direction. Since these methods fail to find significant and systematic flaws in neural networks, it is apparent that adversarial examples reside in narrow, low-probability regions of the data distribution, therefore requiring a directional instead of a randomized search.
 
+% TODO make the linear, high-dimensional explanation a subsection
 % TODO better source for linear classifier succeptability to AEs than breaking-linear-classifiers-on-imgagenet
 % TODO image from breaking-linear-classifiers-on-imgagenet to show linear classifier AEs
 Since AEs hint at precipitous discontinuities in the input-output map realized by the network, it is inviting to blame them on the nonlinear nature of neural networks. However, as pointed out in \cite{breaking-linear-classifiers-on-imgagenet}, even unequivocally linear models such as a softmax linear classifier are succeptable to adversarial examples. An explanation that doesn't require the assumption of neural networks heavily relying on their nonlinear powers was suggested in \cite{explaining-and-harnessing-adversarial-examples}.
@@ -429,19 +433,63 @@ Here, $\vec{\hat i}$ denotes an adversarial example and $c$ is a strength modula
 
 The effect of this perturbation is also shown in figure \ref{fig:ae-explanation} for a value of $c = 0.001$. As \ref{fig:ae-explanation-inner-product} demonstrates, the strength of the perturbation's effect on the inner product increases with $n$. It is not surprising that a change of constant size to each element amounts to more the larger the vector is, but what is surprising is the strength of this effect. As figure \ref{fig:ae-explanation-neuron-output} indicates, the critical point where the perturbation forces the neuron into the on-state is located around $n = 4096$.
 
-However, when examining both \ref{fig:ae-explanation-inner-product} and \ref{fig:ae-explanation-neuron-output}, one can see tat there is a significant visual discrepancy. The critical point around $4096$ is still in a region where the curve for the inner product is still very flat. This gives reason to believe that with a slight increase in data dimensionality, the method could find adversarial examples for input data that leads much more confidently to an off-state decision (remember that the original inner product was merely $-4$). It is also worth considering just how small of a change $c = 0.001$ implies. Since the vectors are binary, a change of $0.001$ per element means that each element's value gets changed by only $\frac{1}{1000}$ of its scale. This is a trade-off between dimensionality and $c$, larger input allows for a smaller $c$ while smaller input requires a larger $c$.
+However, when examining both \ref{fig:ae-explanation-inner-product} and \ref{fig:ae-explanation-neuron-output}, one can see that there is a significant visual discrepancy. The critical point around $4096$ is still in a region where the curve for the inner product is still very flat. This gives reason to believe that with a slight increase in data dimensionality, the method can find adversarial examples even for such input data that leads to a much more confident off-state decision (remember that the original inner product was merely $-4$). It is also worth considering just how small of a change $c = 0.001$ implies. Since the vectors are binary, a change of $0.001$ per element means that each element's value gets changed by only $\frac{1}{1000}$ of its scale. This is a trade-off between dimensionality and $c$, larger input allows for a smaller $c$ while smaller input requires a larger $c$.
 
+In conclusion, one does not need to invoke nonlinear properties of neural networks to explain the existence of adversarial examples. Indeed, it is preferable to not do so, since while a neural network is \emph{potentially} nonlinear owing to their activation functions, most of these\footnote{and, in fact all of those shown in figure \ref{fig:activation-functions}} contain a region that at least approximates a linear function. Thus, basing an explanation on nonlinearity makes some additional assumptions about the distribution of a networks membrane potentials. Instead of that, the linear explanation relies only on properties of the inner product and input data dimensionality. It was demonstrated that it becomes easier and easier to tamper with the value of an inner product, and hence with neuron outputs, as the data size grows, while keeping the changes to each individual value in the input minimal.
+
+% TODO finish this section
+\subsubsection{Adversarial Examples in Convolutional Neural Networks}
+The explanation given in subsection \ref{subsec:ae-linear-explanation} relates adversarial examples mostly with inner products in high-dimensional spaces. But even though convolutional neural networks are just as susceptible to adversarial examples, their first operation on the input data is usually a convolution which typically uses relatively small filters, in the order of $3 \times 3$ to $7 \times 7$. While it is possible to chose a larger coefficient to have a greater leverage on the the value of the inner product, a reflection on the nature of CNNs allows for a different answer.
+
+% TODO finish this
+A crucial point is that the explanation given addresses a single neuron, but a convolutional network consists of many layers, each of which contain numerous neurons. Ultimately, the success of an adversarial example depends on manipulating the values in the last layer, not the first. So while it might not be possibly to have a strong impact on individual neurons in the first convolutional layer, small changes at many points there will be aggregated by subsequent layers\footnote{Note that while this explanation does require more than 1 hidden layer, it does not rely on the nonlinearity between them.}. Thus, in a sense, a CNN also realizes high-dimensional inner products, but defers their computation to higher layers.
+
+\subsection{Universality of Adversarial Examples}
+% TODO source for MNIST
+% TODO figure out what an autoencoder is
+In \cite{intriguing-properties-of-neural-networks}, two more concerning properties of adversarial examples were exposed. Both indicate that AEs are notably more universal than one might expect. The first relates to generalization across multiple models. In the publication, 6 diverse models were trained on the \emph{MNIST} data set, comprising 3 linear softmax classifiers, 2 ANNs with hidden layers and 1 autoencoder. Adversarial examples generated for each of these were evaluated on the other models. The results show that the AEs generalized surprisingly well to other models\footnote{The autoencoder was more resistant to foreign AEs, but still notably more prone to being tricked by them than by random noise on the input data.}.
+
+The other observed property is a universality across different training sets. Neural networks with 2 hidden layers were trained on disjoint, equally large portions of the MNIST training set. Analogously to the above, adversarial examples were generated for each ANN and used for testing on the others. Although they did not retain as much of their deceptive power as they did in the cross-model test, the misclassification rate on the same model trained on seperate data is still considerably higher than both the error on the unmodified test set and random noise.
+
+This universality of AEs is not only astounding, but also problematic since it forecloses a simple solution to the problem. If adversarial examples were model specific, a committee of different or differently trained models could be used to increase resistance against AEs by outvoting the affected model.
+
+\subsection{Relating the Linear Explanation to the Network Function}
+% TODO elaborate further on the commented out part
+% TODO "is still an open question" as far as I'm aware
+Since adversarial examples are able to generalize across both different hyperparameters and different training data choices, their existence seems to be more like a fundamental property of the data space than an a noise-like artifact of a specific network, or of the choice of samples from the data distribution. In \cite{explaining-and-harnessing-adversarial-examples} it has already been established that AEs exhibit some directional contiguity. How this ties in with the topology learned by the network is still an open question. One possible perspective on this matter is attained by considering the function represented by an ANN as a homeomorphism, which is at least valid for nonsingular weight matrices. In that case, the network is only able to stretch and deform the input space as shown in figure \ref{fig:network-homeomorphism} before making a decision, but it can't cut sew up the space.
+
+\begin{figure}[htp]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{homeomorphism_start.png}
+        \caption{The untransformed input space.}
+        \label{fig:network-homeomorphism-start}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{homeomorphism_end_1.png}
+        \caption{Space as transformed by the network.}
+        \label{fig:network-homeomorphism-end}
+    \end{subfigure}
+    \caption{Illustration of a homeomorphic transformation of the input space in a binary classification task Blue and red areas indicate the data distribution and the black line represents the decision boundary. Images taken from \cite{neural-network-homeomorphics-transformation}}
+    \label{fig:network-homeomorphism}
+\end{figure}
+
+Because the chosen network is not powerful enough to disentangle the classes, it minimizes the average error by elongating the space such that the entangled part becomes minimal. As a consequence the data manifolds for both classes are highly deformed and stretched. A result from \cite{explaining-and-harnessing-adversarial-examples} is that the contiguous regions of adversarial examples radiate outward from the original image. However, since randomized alterations of the input image hardly ever produce adversarial examples, it is clear that if they radiate outwards, they must do so in very thin\footnote{albeit long, and therefore possibly voluminous} strips. The homeomorphic perspective provides a topological reason for the network to do this. Since it can't really \emph{solve} the problem because the data manifolds are too strongly entangled, it minimizes the error by deforming the regions classified erroneously into low probability regions.
+
+% TODO
 %% What are they
 %% How are they created (two ways)
 %% Why is their existence surprising?
 %% Deviation from the data manifold?
-% They tried to use AEs to train the network to be more resistant, didn't work (but improved generalization)
-% Theoretical ramifications for human vision
 %% Why do they exist? (strongly fragmented classification regions outside data manifold, lacking smoothness)
 %% Linear explanation for AE's existence
-% How does the explanation given in "Harnessing AEs" relate to CNNs?
-% Generalization across different models and subsets of the data used in training
-% Relate existence of AEs with homeomorphism-likeness of ANNs
+%% Generalization across different models and subsets of the data used in training
+% They tried to use AEs to train the network to be more resistant, didn't work (but improved generalization)
+% Theoretical ramifications for human vision
+%% How does the explanation given in "Harnessing AEs" relate to CNNs?
+%% Relate existence of AEs with homeomorphism-likeness of ANNs. Harnessing AEs section 8 gives some support
 % Points from the summary of Harnessing Adversarial Examples
 % How do _I_ create them? The thing with the iterations-dependent coefficient...
 
@@ -462,17 +510,12 @@ However, when examining both \ref{fig:ae-explanation-inner-product} and \ref{fig
 % TODO TODOS
 % Be consistent with whether figure captions end with a dot or not.
 % Consistent variable names etc.
+% Maybe use "dot product" instead of "inner product"?
+% Replace can't, don't etc with proper language
+% URL in References where important
 
 % Source for CNN performance on image processing tasks
 % Alex Krizhevsky, Ilya Sutskever, and Geoff Hinton. Imagenet classification with deep convolutional neural networks. In Advances in Neural Information Processing Systems 25, pages 1106–1114, 2012
-
-
-
-
-
-
-
-
 
 
 
