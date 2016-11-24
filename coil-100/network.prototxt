@@ -6,7 +6,7 @@ layer {
 	top: "data"
 	top: "label"
 	image_data_param {
-		source: "/media/sf_Masterarbeit/data/COIL/train_images_labeled.txt"
+		source: "/media/sf_Masterarbeit/data/COIL100/train_images_labeled.txt"
 		batch_size: 16
 		shuffle: true
 	}
@@ -23,7 +23,7 @@ layer {
 	top: "data"
 	top: "label"
 	image_data_param {
-		source: "/media/sf_Masterarbeit/data/COIL/test_images_labeled.txt"
+		source: "/media/sf_Masterarbeit/data/COIL100/test_images_labeled.txt"
 		batch_size: 16
 		shuffle: false
 	}
