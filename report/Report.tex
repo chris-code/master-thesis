@@ -15,6 +15,8 @@
 \usepackage{xcolor}
 \usepackage{setspace}
 \usepackage{subcaption}
+\usepackage{algpseudocode} % Pseudocode
+\usepackage{algorithm} % Float for algorithms
 
 % TODO replace some of these \newcommands with \DeclareMathOperators
 \newcommand\braces[1]{\left(#1\right)}
@@ -54,7 +56,7 @@
 \begin{titlepage}
     \begin{center}
     \vphantom{0cm}
-    \huge \textbf{Hardening artificial neural networks against specifically constructed adversarial input data} \\
+    \huge \textbf{Exploring ways to harden deep convolutional neural networks against constructed adversarial input data} \\
     \vspace{4cm}
     %\LARGE \textbf{Report}\\
     \normalsize
@@ -362,6 +364,7 @@ It is apparent that the function represented by the network is undesirably disco
 Here, $x$ is the given image, $r$ its perturbation, $f$ the function embodied by the network, l the desired (wrong) label and $m$ the size of the flattened pixel vector. Approximate solutions to this problem were obtained for various images and target labels with the L-BFGS algorithm.
 
 \subsection{Fast Gradient Sign Method}
+\label{sec:fast-gradient-sign-method}
 The major drawback of this approach is the required computation time to generate the adversarial examples. In order to study AEs and their properties in a quantative way and obtain significant statistical figures, this is insufficient. Fortunately, a much more efficient method was proposed in \cite{explaining-and-harnessing-adversarial-examples}. The fundamental idea is to optimize the input layer much like the parameters of the network, but with a different goal in mind. In order to understand the specifics of the process, consider the formalization\footnote{Some variable names have been changed to for consistency with equations \eqref{eq:ae-formalization-minimize} - \eqref{eq:ae-formalization-valid}} in equation \eqref{eq:fast-gradient-sign-method}.
 
 \begin{align}
@@ -505,7 +508,94 @@ Because the chosen network is not powerful enough to disentangle the classes, it
 
 
 
+
+
+
+
+
+\section{Generation of Adversarial Examples}
+% TODO we focus on images
+In order to gain insights into the nature and properties of adversarial examples, it is expedient to have a great number of them at one's disposal. This allows for a more automated, larger-scale analysis than visual inspection of AEs\footnote{though visual inspection is also a useful method and is employed in this thesis} and can unveil more general characteristics. To this end, multiple large-scale batches of adversarial examples were created based on different data sets and various configurations of hyper-parameters. 
+
+% TODO almost all? Not just all?
+Apart from parameters choices, the biggest determinants of the specifics of adversarial examples are the data set used to provide the starting points in the generation process and the models that are employed to provide the gradients required by the FGSM. In this thesis, almost all AEs are based on one of two datasets: \emph{GTSRB} and \emph{ImageNet}. The former is a collection of traffic signs taken from german roads at various points during approach and the latter is a general-purpose aggregate of online images with diverse classes. Both of these datasets are combined with a respective network. For GTSRB, a network based on \cite{multi-column-neural-network-gtsrb} was used to generate adversarial examples, while with ImageNet, the \emph{GoogLeNet} network from \cite{going-deeper-with-convolutions} was used. Both networks were trained on their respective data sets\footnote{But GoogLeNet due to both its size and the size of the data set were not trained from scratch, but the weights provided by the \emph{caffe} software were used instead}.
+
+At this point it is vital to lay out in detail how the adversarial examples inspected and used in this thesis are generated. The process is based on the Fast Gradient Sign Method introduced in section \ref{sec:fast-gradient-sign-method} and detailed in equation \eqref{eq:fast-gradient-sign-method}. Briefly stated, the gradient of the loss function w.r.t. the input data is used to determine the direction in input space towards which the data should be altered. Of course, in order to generate AEs and trick the networks into predicting a false class, a false label is used in the loss function. This approach lends itself to an iterative algorithm, formalized as pseudocode in algorithm \ref{alg:make-adversarial}.
+
+% TODO grad[0] indicates gradient for input
+\newcommand\numIt{\text{num\_iterations}}
+\newcommand\advEx{\text{ae}}
+\newcommand\grad{\text{grad}}
+\begin{algorithm}
+	\begin{algorithmic}
+	\Function{MakeAdversarial}{input\_data, l, c, \numIt}
+	\State \advEx $\ \gets$ input\_data
+	\State $i \gets 0$
+	\While{$i < \numIt$}
+		\State $\grad \gets$ \Call{Network.Backprop}{\advEx, l}
+		\State $r \gets \sign \braces{\grad[0]}$
+		\State \advEx $\ \gets$ $\advEx + \frac{c}{\numIt} \cdot r$
+		\State $i \gets i + 1$
+	\EndWhile
+	\State \Return \advEx
+	\EndFunction
+	\end{algorithmic}
+	\caption{Generate adversarial examples with iterative FGSM}
+	\label{alg:make-adversarial}
+\end{algorithm}
+
+This approach is based on \cite{how-to-trick-neural-network-panda-to-vulture} and relies on an iterative strengthening of an image's adversarial properties. It is described in a data-agnostic manner, even though it is only used for images in the scope of this thesis. The AE gets initialized with the image data. Then a selectable number of iterations is performed where as a first step, the gradient is computed via backpropagation. Subsequently, the gradient of the input data is extracted\footnote{In the pseudo-code this is indicated by \emph{grad[0]}, but the specifics will depend on the software and libraries used} and its sign is computed, in keeping with FGSM. This signed gradient is then modulated by a coefficient and added to the adversarial data. This coefficient, however, slightly deviates from the description in \eqref{eq:fast-gradient-sign-method}. The signed gradient $r$ is modulated by $\frac{c}{\numIt}$, meaning that the adaption strength is scaled with the number of iterations. It is functionally equivalent with simply choosing a smaller $c$, but provides the advantage that the parameter scales are comparable to the single-step approach of \cite{explaining-and-harnessing-adversarial-examples}. There, a value of $0.9$ means a distance of $0.9 \cdot \norm{r}$ traveled in input space, and here, it indicates the same distance traveled, although the path may be curved so the distance between start and end point may be smaller. Thus, a value of $c = 0.9$ describes a sphere of radius $0.9 \cdot \norm{r}$ around the starting location, containing all eligible end points for the AE search.
+
+With this method, it is possible to create convincing adversarial examples that both trick the network into predicting a false class, and are indistinguishable from regular images by humans at the same time. How well it works depends on the original image, target class and careful choice of the parameters and is analyzed later, but for now a functional example is given in figure \ref{fig:ae-example}.
+
+\begin{figure}[htp]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{panda.png}
+        \caption{Original, rescaled image as feed into the network. Top prediction: \emph{giant panda}, 99.23\% confidence}
+        \label{fig:ae-example-original}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{panda_acorn_10_0dot9.png}
+        \caption{Adversarial example. Top prediction: \emph{acorn}, 86.17\% confidence \\}
+        \label{fig:ae-example-ae}
+    \end{subfigure}
+    \caption{An image of a panda and its adversarial form. The latter was generated with $c = 0.9$ and 10 iterations on ImageNet/GoogLeNet}
+    \label{fig:ae-example}
+\end{figure}
+
+% TODO with 100 iterations, 94.49% is possible -> elaborate on this (with pictures)
+The original image is of a giant panda facing upwards, taken from above. The file as a resolution of $1728 \times 1152$ pixels. However, the adversarial example for this image was created by using the GoogLeNet CNN, which accepts input only in $224 \times 224$ resolution, so the image was rescaled to match. In \ref{fig:ae-example-ae} one can see an adversarial example for the panda, which, although no changes are visible to human eyes, is classified as an acorn by the network with an inappropriately high confidence of $86.17\%$. With 100 iterations, $94.49\%$ are possible while keeping $c = 0.9$, adding even more unjustified confidence to a wrong prediction at the expense of ten times as much computational time.
+
+% Plot gradient / difference
+% Plots how original and adversarial class evolve over time
+
+% How is it done specifically?
+% Imagenet
 % Googlenet
+% I didn't train googlenet myself
+% AEs for Imagenet and Googlenet
+% GTSRB
+% GTSRB-Net
+% AEs for GTSRB and GTSRB-Net
+
+
+%\section{Spectra of Adversarial Examples}
+% What are spectra
+% How are they computed (in general, fft)
+% Layout of frequency space
+% How do they normally look? Somewhat bell-shaped (feat. that paper)
+% How are they computed here (averaging)
+% How are they displayed (as images, log of data)
+% Description of how the AEs were created (parameters etc.)
+% How to calculate distribution w.r.t distance, how is it normalized?
+% Analysis w.r.t distance
+% How to calculate distribution w.r.t angle, how is it normalized?
+% Analysis w.r.t angle
+
+% Describe Googlenet
 % Describe data sets
 
 \bibliographystyle{alpha}
@@ -516,6 +606,7 @@ Because the chosen network is not powerful enough to disentangle the classes, it
 % List of figures
 % List of tables
 % List of acronyms
+% List of algorithm
 
 % TODO TODOS
 % Be consistent with whether figure captions end with a dot or not.
@@ -523,6 +614,10 @@ Because the chosen network is not powerful enough to disentangle the classes, it
 % Maybe use "dot product" instead of "inner product"?
 % Replace can't, don't etc with proper language
 % URL in References where important
+% urlseen from .ref file doesn't show up i references
+
+% Plots how original and adversarial class evolve over time
+% AE by superposition
 
 % Source for CNN performance on image processing tasks
 % Alex Krizhevsky, Ilya Sutskever, and Geoff Hinton. Imagenet classification with deep convolutional neural networks. In Advances in Neural Information Processing Systems 25, pages 1106–1114, 2012
