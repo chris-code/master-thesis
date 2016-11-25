@@ -513,7 +513,7 @@ Because the chosen network is not powerful enough to disentangle the classes, it
 
 
 
-\section{Generation of Adversarial Examples}
+\section{Generation of adversarial examples}
 % TODO we focus on images
 In order to gain insights into the nature and properties of adversarial examples, it is expedient to have a great number of them at one's disposal. This allows for a more automated, larger-scale analysis than visual inspection of AEs\footnote{though visual inspection is also a useful method and is employed in this thesis} and can unveil more general characteristics. To this end, multiple large-scale batches of adversarial examples were created based on different data sets and various configurations of hyper-parameters. 
 
@@ -546,19 +546,20 @@ At this point it is vital to lay out in detail how the adversarial examples insp
 
 This approach is based on \cite{how-to-trick-neural-network-panda-to-vulture} and relies on an iterative strengthening of an image's adversarial properties. It is described in a data-agnostic manner, even though it is only used for images in the scope of this thesis. The AE gets initialized with the image data. Then a selectable number of iterations is performed where as a first step, the gradient is computed via backpropagation. Subsequently, the gradient of the input data is extracted\footnote{In the pseudo-code this is indicated by \emph{grad[0]}, but the specifics will depend on the software and libraries used} and its sign is computed, in keeping with FGSM. This signed gradient is then modulated by a coefficient and added to the adversarial data. This coefficient, however, slightly deviates from the description in \eqref{eq:fast-gradient-sign-method}. The signed gradient $r$ is modulated by $\frac{c}{\numIt}$, meaning that the adaption strength is scaled with the number of iterations. It is functionally equivalent with simply choosing a smaller $c$, but provides the advantage that the parameter scales are comparable to the single-step approach of \cite{explaining-and-harnessing-adversarial-examples}. There, a value of $0.9$ means a distance of $0.9 \cdot \norm{r}$ traveled in input space, and here, it indicates the same distance traveled, although the path may be curved so the distance between start and end point may be smaller. Thus, a value of $c = 0.9$ describes a sphere of radius $0.9 \cdot \norm{r}$ around the starting location, containing all eligible end points for the AE search.
 
+\subsection{Analysis of fundamental properties}
 With this method, it is possible to create convincing adversarial examples that both trick the network into predicting a false class, and are indistinguishable from regular images by humans at the same time. How well it works depends on the original image, target class and careful choice of the parameters and is analyzed later, but for now a functional example is given in figure \ref{fig:ae-example}.
 
 \begin{figure}[htp]
     \centering
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{panda.png}
+        \includegraphics[width=\textwidth]{aes_new/panda.png}
         \caption{Original, rescaled image as feed into the network. Top prediction: \emph{giant panda}, 99.23\% confidence}
         \label{fig:ae-example-original}
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{panda_acorn_10_0dot9.png}
+        \includegraphics[width=\textwidth]{aes_new/panda_acorn_10_0dot9.png}
         \caption{Adversarial example. Top prediction: \emph{acorn}, 86.17\% confidence \\}
         \label{fig:ae-example-ae}
     \end{subfigure}
@@ -566,11 +567,111 @@ With this method, it is possible to create convincing adversarial examples that 
     \label{fig:ae-example}
 \end{figure}
 
+% TODO table with predictions
 % TODO with 100 iterations, 94.49% is possible -> elaborate on this (with pictures)
-The original image is of a giant panda facing upwards, taken from above. The file as a resolution of $1728 \times 1152$ pixels. However, the adversarial example for this image was created by using the GoogLeNet CNN, which accepts input only in $224 \times 224$ resolution, so the image was rescaled to match. In \ref{fig:ae-example-ae} one can see an adversarial example for the panda, which, although no changes are visible to human eyes, is classified as an acorn by the network with an inappropriately high confidence of $86.17\%$. With 100 iterations, $94.49\%$ are possible while keeping $c = 0.9$, adding even more unjustified confidence to a wrong prediction at the expense of ten times as much computational time.
+The original image is of a giant panda facing upwards, taken from above. The file as a resolution of $1728 \times 1152$ pixels. However, the adversarial example for this image was created by using the GoogLeNet CNN, which accepts input only in $224 \times 224$ resolution, so the image was rescaled to match. In \ref{fig:ae-example-ae} one can see an adversarial example for the panda, which, although no changes are visible to human eyes, is classified as an acorn by the network with an inappropriately high confidence of $86.17\%$. With 100 iterations, $94.49\%$ are possible while keeping $c = 0.9$, adding even more unjustified confidence to a wrong prediction at the expense of ten times as much computational time\footnote{For this reason, the large-scale production of AEs that will be described below will use many more iterations than just 10 or 100.}.
 
+Even though no visible changes are apparent, the right image is clearly not identical to the one on the left, hence the misclassification. In order to see exactly how they deviate from each other in image space, one can look at their pointwise differences. These are depicted in figure \ref{fig:ae-difference-diff} below.
+
+\begin{figure}[htp]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{aes_new/panda_acorn_10_0dot9_posdiff.png}
+        \caption{Pointwise difference of original and adversarial image, positive part. See appendix \ref{sec:visualizing-diff} for details.} % TODO
+        \label{fig:ae-difference-diff}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{aes_new/panda_acorn_10_0dot9_grad.png}
+        \caption{Sign of the gradient in the first iteration as used by iterative FGSM \\}
+        \label{fig:ae-difference-grad}
+    \end{subfigure}
+    \caption{Illustration of the deviation between the images in figure \ref{fig:ae-example}. Images were scaled by the inverse of their 98th percentile to increase visibility.}
+    \label{fig:ae-difference}
+\end{figure}
+
+As one can see, the method devotes its effort into regions that are meaningfully seperated as far as humans are concerned. Apparently, a lot of the changes that are determined to be impactful are made at the panda's eyes and their immediate surroundings, corresponding to the black spots they tend to have. This allows for the conclusion that ImageNet attaches a lot of importance to these features when trying to detect a panda. Naturally, if one wants to convince the network that it is an acorn, it is not only expedient to emphasize acorn-like features, but also to attenuate panda-like features, explaining the changes above. Both the nose and snout are also discernable, and, to a lesser extend, the ear on the right side\footnote{which is the panda's left ear}. Although the intensity of the change seems to be weaker compared to the eye region, they too seem to have a significant bearing on the network's impression of a panda.
+
+% TODO image to justify that panda head shape looks like acorn
+Another circumstance uncovered by figure \ref{fig:ae-difference-diff} is the emphasis on the outline of the panda. This concurs with the notion that the geometry of objects is of considerable importance and acts as a reliable determinant of class membership. Because of this, it is advisable for the algorithm to focus on contours to maximize its effectiveness. Yet, if this explanation is to hold some ground, the question arises why one can only see changes to the existing panda's outline, but not see a new acorn's outline emerge. There are two possible explanations for this: Either the adversarial example convinces the network of its acorn-ness via features other than overall shape, or it modifies and reuses part of the panda's shape to look more like an acorn. The former explanation can draw some support from the diffuse, wide-spread changes outside the panda in figure \ref{fig:ae-difference-diff}. On a speculative note, they might serve to fudge the texture and other high-frequency features. The latter hypothesis is mostly founded in the observation that the panda's head, and specifically its outline highlighted by the difference of original and AE, roughly resembles an acorn's shape. A hand-picked example to justify this line of reasoning is given in figure \ref{fig:imagenet-acorn-dresser-acorn}.
+
+\begin{figure}[htp]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+    		\centering
+        \includegraphics[scale=0.5]{imagenet/n12267677_6653.JPEG}
+        \caption{An acorn (n12267677\_6653.jpeg)}
+        \label{fig:imagenet-acorn-dresser-acorn}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{imagenet/n03016953_140.JPEG}
+        \caption{A dresser (n03016953\_140.jpeg)}
+        \label{fig:imagenet-acorn-dresser-dresser}
+    \end{subfigure}
+    \caption{Representatives for acorns and dressers in ImageNet}
+    \label{fig:imagenet-acorn-dresser}
+\end{figure}
+
+To test this hypothesis, the same procedure with the same parameters was repeated, with the only difference being the target class. Instead of an acorn, the iterative FGSM was instructed to turn the panda into an instance of the dresser class, with a class representative given in figure \ref{fig:imagenet-acorn-dresser-dresser}. The images of dressers exhibit angular features, with the rectangular main body being segmented into likewise rectangular compartments. A strong attempt to recreate a similar edge structure in the AE should be clearly visible. In figure \ref{fig:ae-dresser-difference-grad}, the resulting difference is depicted\footnote{The resulting image is visually indistinguishable from figure \ref{fig:ae-example} and therefore omitted.}.
+
+\begin{figure}[htp]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{aes_new/panda_dresser_10_0dot9_posdiff.png}
+        \caption{Pointwise difference of original and adversarial image}
+        \label{fig:ae-dresser-difference-diff}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{aes_new/panda_dresser_10_0dot9_grad.png}
+        \caption{Sign of the gradient in the first iteration as used by iterative FGSM}
+        \label{fig:ae-dresser-difference-grad}
+    \end{subfigure}
+    \caption{Illustration of the deviation between the panda in figure \ref{fig:ae-example-original} and an adversarial example mimiking the class represented by \ref{fig:imagenet-acorn-dresser-dresser}. AE was generated in $10$ iterations with $c = 0.9$.}
+    \label{fig:ae-dresser-difference}
+\end{figure}
+
+% TODO table for predicitons
+As one can see, figure \ref{fig:ae-difference-diff} and \ref{fig:ae-dresser-difference-diff} are overwhelmingly similar, only differing in the noise-like pattern in which the individual changes are locally arranged. Rectangular shapes, much less a dresser, are not visible, which makes the hypothesis seem less likely to be true. However, a noteworthy circumstance is that in this case, the algorithm did not succeed in turning the panda into a dresser. The top prediction was \emph{n02120079, Arctic fox} with $8.96\%$ certainty, wit the class \emph{n02510455, giant panda} still in 5th place with $2.77\%$. The class \emph{n03016953, dresser} was not even in the top 5 predictions. This is not unique to the dresser class, rather, it seems the panda is rather intractable when trying to turn it into rigid, angular objects\footnote{though only a small sample of eligible target classes was tested}.
+
+% TODO try c=3.0 and 500 iterations for this
+As the case stands, it is possible that feigning a more dresser-like outline would be effective, but can not be performed by the algorithm in this configuration. Thus, instead of choosing a target class that suggests a more visible output, an attempt was made to elicit a more evident acorn shape in the difference by increasing the algorithms power to modify the image, even if it comes at the expense of the produced image's adversariality. This was done by increasing both the value of $c$ and the number of iterations. The resulting difference between original and adversarial image is shown in figure \ref{fig:ae-high-power}.
+
+\begin{figure}[htp]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{aes_new/panda_acorn_10_3dot0_posdiff.png}
+        \caption{Pointwise difference of original and adversarial image}
+        \label{fig:ae-high-power-img}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{aes_new/panda_acorn_10_3dot0_grad.png}
+        \caption{Sign of the gradient in the first iteration as used by iterative FGSM}
+        \label{fig:ae-high-power-diff}
+    \end{subfigure}
+    \caption{Illustration of the deviation between the panda in figure \ref{fig:ae-example-original} and an adversarial example mimiking the class represented by \ref{fig:imagenet-acorn-dresser-acorn}. AE was generated in $10$ iterations with $c = 3.0$.}
+    \label{fig:ae-high-power}
+\end{figure}
+
+Here, the visual similarities to something like \ref{fig:imagenet-acorn-dresser-acorn} are considerably more pronounced, so it may actually be the case that the iterative FGSM operates on the level of shapes and contours in order to convince the network that an image has a certain class. However, one has to be aware that a sizable portion of the similarity is also promoted by the initial round shape of the panda's head. Note that this is highly speculative and requires further investigation before any definitive conclusions can be drawn.
+
+Also, while outlines are evidently important, it would be a false conclusion to assume that FGSM operates \emph{exclusively} on outlines. Even though some clues have been presented that indicate a significant role of larger shapes, it is crucial to keep in mind that other factors may contribute important success factors as well, such as texture or a completely delocalized noisy effect, which are not ideally covered by displaying the most prominent changes in the image.
+
+% Compare difference with gradient
+% 100 iterations
+
+% What happens if we make a panda less / more like a panda?
 % Plot gradient / difference
+% How does this compare to panda -> acorn with 1 iteration?
 % Plots how original and adversarial class evolve over time
+% Plot extreme AEs, generated with very high c
+% AE by superposition
 
 % How is it done specifically?
 % Imagenet
@@ -582,7 +683,7 @@ The original image is of a giant panda facing upwards, taken from above. The fil
 % AEs for GTSRB and GTSRB-Net
 
 
-%\section{Spectra of Adversarial Examples}
+%\section{Spectra of adversarial examples}
 % What are spectra
 % How are they computed (in general, fft)
 % Layout of frequency space
@@ -595,8 +696,36 @@ The original image is of a giant panda facing upwards, taken from above. The fil
 % How to calculate distribution w.r.t angle, how is it normalized?
 % Analysis w.r.t angle
 
+%\section{Class dependence of successful generation}
+
+%\section{Predicting the generation progress}
+
 % Describe Googlenet
 % Describe data sets
+
+\begin{appendix}
+	\section{Visualizing differences between original image and adver\-sarial image}
+	\label{sec:visualizing-diff}
+	At various points in the thesis, the difference between an original image taken from a dataset and an adversarial example generated from it are compared. Sometimes this is done by showing the element-wise difference between the two. This, however, poses two challanges: Because the differences are usually tiny, they need to be scaled to visible range, and since we are talking about a difference, negative values also exist and carry meaning. A procedure to produce difference pictures while preserving most of the meaningful information is shown in algorithm \ref{alg:process-difference}.
+	
+	\begin{algorithm}
+		\begin{algorithmic}
+			\Function{ProcessDifference}{original, adversarial, c, p}
+				\State $\text{diff} \gets \frac{255}{c} \cdot \braces{\text{adversarial} - \text{original}}$
+				\State posDiff, negDiff $\gets$ diff, $- \text{diff}$
+				\State
+				\State Set all negative values in posDiff, negDiff to 0
+				\State Discard the p-Percentile from posDiff, negDiff
+				\State
+				\State \Return posDiff, negDiff
+			\EndFunction
+		\end{algorithmic}
+		\caption{Compute displayable differences between original and adversarial image}
+		\label{alg:process-difference}
+	\end{algorithm}
+	
+	Here, $c$ is the paramteter of the same name used in generating the AE. In words, the procedure scales the difference to visible range, splits it into a positive and a negative part and discards all values below the p-Percentile to increase lucidity (default $p = 98$). This yields two images, one that shows the changes in the positive direction and one that does the same for the negative direction. Most of the time, not a lot of insight is gained from inspecting both images, so to save space, unless both are shown or otherwise noted, only the positive part will be included, indicating where values have been \emph{added}.
+\end{appendix}
 
 \bibliographystyle{alpha}
 \bibliography{ref,image-ref}
@@ -610,6 +739,7 @@ The original image is of a giant panda facing upwards, taken from above. The fil
 
 % TODO TODOS
 % Be consistent with whether figure captions end with a dot or not.
+% Be consistent with whether footnotes end in a dot, and if they start with a capital letter
 % Consistent variable names etc.
 % Maybe use "dot product" instead of "inner product"?
 % Replace can't, don't etc with proper language

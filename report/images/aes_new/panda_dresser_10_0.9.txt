@@ -1,0 +1,6 @@
+['n02120079 ', 'Arctic fox', ' white fox', ' Alopex lagopus']: 8.96% certainty
+['n02111889 ', 'Samoyed', ' Samoyede']: 3.88% certainty
+['n04399382 ', 'teddy', ' teddy bear']: 3.57% certainty
+['n02134084 ', 'ice bear', ' polar bear', ' Ursus Maritimus', ' Thalarctos maritimus']: 3.19% certainty
+['n02510455 ', 'giant panda', ' panda', ' panda bear', ' coon bear', ' Ailuropoda melanoleuca']: 2.77% certainty
+['n02441942 ', 'weasel']: 2.68% certainty
