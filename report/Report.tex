@@ -513,17 +513,19 @@ Because the chosen network is not powerful enough to disentangle the classes, it
 
 
 
-\section{Generation of adversarial examples}
-\label{sec:generation-of-ae}
+\section{Iterative Fast Gradient Sign Method}
+\label{sec:iterative-fgsm}
 % TODO we focus on images
 In order to gain insights into the nature and properties of adversarial examples, it is expedient to have a great number of them at one's disposal. This allows for a more automated, larger-scale analysis than visual inspection of AEs\footnote{though visual inspection is also a useful method and is employed in this thesis} and can unveil more general characteristics. To this end, multiple large-scale batches of adversarial examples were created based on different data sets and various configurations of hyper-parameters. 
 
 % TODO almost all? Not just all?
+% FIXME What about COIL 100? Has it been added?
 Apart from parameters choices, the biggest determinants of the specifics of adversarial examples are the data set used to provide the starting points in the generation process and the models that are employed to provide the gradients required by the FGSM. In this thesis, almost all AEs are based on one of two datasets: \emph{GTSRB} and \emph{ImageNet}. The former is a collection of traffic signs taken from german roads at various points during approach and the latter is a general-purpose aggregate of online images with diverse classes. Both of these datasets are combined with a respective network. For GTSRB, a network based on \cite{multi-column-neural-network-gtsrb} was used to generate adversarial examples, while with ImageNet, the \emph{GoogLeNet} network from \cite{going-deeper-with-convolutions} was used. Both networks were trained on their respective data sets\footnote{But GoogLeNet due to both its size and the size of the data set were not trained from scratch, but the weights provided by the \emph{caffe} software were used instead}.
 
 At this point it is vital to lay out in detail how the adversarial examples inspected and used in this thesis are generated. The process is based on the Fast Gradient Sign Method introduced in section \ref{sec:fast-gradient-sign-method} and detailed in equation \eqref{eq:fast-gradient-sign-method}. Briefly stated, the gradient of the loss function w.r.t. the input data is used to determine the direction in input space towards which the data should be altered. Of course, in order to generate AEs and trick the networks into predicting a false class, a false label is used in the loss function. This approach lends itself to an iterative algorithm, formalized as pseudocode in algorithm \ref{alg:make-adversarial}.
 
 % TODO grad[0] indicates gradient for input
+% TODO rename to iterative FGSM
 \newcommand\numIt{\text{num\_iterations}}
 \newcommand\advEx{\text{ae}}
 \newcommand\grad{\text{grad}}
@@ -534,8 +536,8 @@ At this point it is vital to lay out in detail how the adversarial examples insp
 	\State $i \gets 0$
 	\While{$i < \numIt$}
 		\State $\grad \gets$ \Call{Network.Backprop}{\advEx, l}
-		\State $r \gets \sign \braces{\grad[0]}$
-		\State \advEx $\ \gets$ $\advEx + \frac{c}{\numIt} \cdot r$
+		\State $r \gets \frac{c}{\numIt} \cdot \sign \braces{\grad[0]}$
+		\State \advEx $\ \gets$ $\advEx + r$
 		\State $i \gets i + 1$
 	\EndWhile
 	\State \Return \advEx
@@ -545,7 +547,7 @@ At this point it is vital to lay out in detail how the adversarial examples insp
 	\label{alg:make-adversarial}
 \end{algorithm}
 
-This approach is based on \cite{how-to-trick-neural-network-panda-to-vulture} and relies on an iterative strengthening of an image's adversarial properties. It is described in a data-agnostic manner, even though it is only used for images in the scope of this thesis. The AE gets initialized with the image data. Then a selectable number of iterations is performed where as a first step, the gradient is computed via backpropagation. Subsequently, the gradient of the input data is extracted\footnote{In the pseudo-code this is indicated by \emph{grad[0]}, but the specifics will depend on the software and libraries used} and its sign is computed, in keeping with FGSM. This signed gradient is then modulated by a coefficient and added to the adversarial data. This coefficient, however, slightly deviates from the description in \eqref{eq:fast-gradient-sign-method}. The signed gradient $r$ is modulated by $\frac{c}{\numIt}$, meaning that the adaption strength is scaled with the number of iterations. It is functionally equivalent with simply choosing a smaller $c$, but provides the advantage that the parameter scales are comparable to the single-step approach of \cite{explaining-and-harnessing-adversarial-examples}. There, a value of $0.9$ means a distance of $0.9 \cdot \norm{r}$ traveled in input space, and here, it indicates the same distance traveled, although the path may be curved so the distance between start and end point may be smaller. Thus, a value of $c = 0.9$ describes a sphere of radius $0.9 \cdot \norm{r}$ around the starting location, containing all eligible end points for the AE search.
+This approach is based on \cite{how-to-trick-neural-network-panda-to-vulture} and relies on an iterative strengthening of an image's adversarial properties. It is described in a data-agnostic manner, even though it is only used for images in the scope of this thesis. The AE gets initialized with the image data. Then a selectable number of iterations is performed where as a first step, the gradient is computed via backpropagation. Subsequently, the gradient of the input data is extracted\footnote{In the pseudo-code this is indicated by \emph{grad[0]}, but the specifics will depend on the software and libraries used} and its sign is computed, in keeping with FGSM. This signed gradient is then modulated by a coefficient and added to the adversarial data. This coefficient, however, slightly deviates from the description in \eqref{eq:fast-gradient-sign-method}. Perturbation $r$ is formed by modulating the gradient with $\frac{c}{\numIt}$, meaning that the adaption strength coefficient $c$ is scaled with the number of iterations. It is functionally equivalent with simply choosing a smaller $c$, but provides the advantage that the parameter scales are comparable to the single-step approach of \cite{explaining-and-harnessing-adversarial-examples}. There, a value of $0.9$ means a distance of $0.9 \cdot \norm{r}$ traveled in input space, and here, it indicates the same distance traveled, although the path may be curved so the distance between start and end point may be smaller. Thus, a value of $c = 0.9$ describes a sphere of radius $0.9 \cdot \norm{r}$ around the starting location, containing all eligible end points for the AE search. Besides comparability, this geometric meaning is another reason to link step size and iteration count.
 
 %\section{ImageNet on GoogLeNet}
 %\section{GTSRB on GTSRB-Net}
@@ -572,7 +574,7 @@ This approach is based on \cite{how-to-trick-neural-network-panda-to-vulture} an
 
 
 \section{Analysis of fundamental properties}
-With the method presented in section \ref{sec:generation-of-ae}, it is possible to create convincing adversarial examples that both trick the network into predicting a false class, and are indistinguishable from regular images by humans at the same time. How well it works depends on the original image, target class and careful choice of the parameters and will be below later, but for now a functional example is given in figure \ref{fig:ae-example}.
+With the method presented in section \ref{sec:iterative-fgsm}, it is possible to create convincing adversarial examples that both trick the network into predicting a false class, and are indistinguishable from regular images by humans at the same time. How well it works depends on the original image, target class and careful choice of the parameters and will be below later, but for now a functional example is given in figure \ref{fig:ae-example}.
 
 \begin{figure}[htp]
     \centering
@@ -656,7 +658,7 @@ To test this hypothesis, the same procedure with the same parameters was repeate
         \caption{Sign of the gradient in the first iteration as used by iterative FGSM}
         \label{fig:ae-dresser-difference-grad}
     \end{subfigure}
-    \caption{Illustration of the deviation between the panda in figure \ref{fig:ae-example-original} and an adversarial example mimiking the class represented by \ref{fig:imagenet-acorn-dresser-dresser}. AE was generated in $10$ iterations with $c = 0.9$.}
+    \caption{Illustration of the deviation between the panda in figure \ref{fig:ae-example-original} and an adversarial example mimiking the class represented by \ref{fig:imagenet-acorn-dresser-dresser}. Corresponding AE was generated in $10$ iterations with $c = 0.9$.}
     \label{fig:ae-dresser-difference}
 \end{figure}
 
@@ -680,7 +682,7 @@ As the case stands, it is possible that feigning a more dresser-like outline wou
         \caption{Sign of the gradient in the first iteration as used by iterative FGSM}
         \label{fig:ae-high-power-diff}
     \end{subfigure}
-    \caption{Illustration of the deviation between the panda in figure \ref{fig:ae-example-original} and an adversarial example mimiking the class represented by \ref{fig:imagenet-acorn-dresser-acorn}. AE was generated in $10$ iterations with $c = 3.0$.}
+    \caption{Illustration of the deviation between the panda in figure \ref{fig:ae-example-original} and an adversarial example mimiking the class represented by \ref{fig:imagenet-acorn-dresser-acorn}. Corresponding AE was generated in $10$ iterations with $c = 3.0$.}
     \label{fig:ae-high-power}
 \end{figure}
 
@@ -694,49 +696,144 @@ However, in this case it is still worth discussing because in \cite{explaining-a
 
 These two results are not strictly mutually exclusive; the existence of adversarial examples in the initial direction does not prohibit the existence of other, and possibly better, AEs in different directions. Also the conclusion from \cite{explaining-and-harnessing-adversarial-examples} that cross-model generalization of AEs is caused by an easily learned, essentially linear structure in input space still holds, as long as the initial direction and the path taken by gradient descent are roughly aligned. However, the findings above cast the relation between input space and adversarial examples in a whole new light and hint at a finer structure in this space that might exist as low-amplitude, possibly noise-like ripples in the generally linear structure.
 
-\subsection{The effects of iterations and step size}
-% TODO 94.49 fix discrepancy with table
+\subsection{The effects of iterations and adaption strength coefficient}
+% TODO FIXME 94.49 fix discrepancy with table
 The previous section revealed a relationship between iteration count and the effectiveness of the generated adversarial example. Running iterative FGSM for $100$ instead of $10$ iterations yielded a GoogLeNet confidence of $94.49\%$ instead of $86.17\%$. In order to be able to efficiently generate large batches of adversarial examples, an understanding of this relation is indispensable. To this end, a plot relating these two quantities is provided in figure \ref{fig:confidence-vs-iterations}, accompanied by table \ref{tab:confidence-vs-iterations}, showing the exact values for the first 8 iteration counts.
 
-% TODO dresser plot
 % TODO better plot with 2 scales
 % TODO more classes
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=0.6\textwidth]{images/confidence-vs-iterations.png}
-	\caption{Plot of the network confidence at the end of AE generation as a function of iteration count}
+	\caption{Plot of the network confidence at the end of AE generation as a function of iteration count. A value of $c = 0.9$ was used.}
 	\label{fig:confidence-vs-iterations}
 \end{figure}
 
-% TODO finish entering data
 \begin{table}[htp]
 	\begin{tabular}{|l|llllllll|}
 		\hline
 		Iteration & 10 & 25 & 50 & 75 & 100 & 125 & 150 & 175 \\
 		\hline
-		Acorn confidence & 0.8613 & 0.9258 & 0.9392 & 0.9427 & 0.9455 & 0.9462 & 0.946935 & 0.9475 \\
-		Dresser confidence & 0.01144 & 0.01576 & 0.01774 & 0.01832 & 0.01867 & 0.01899 & 38 & 39 \\
+		Acorn confidence & 0.8613 & 0.9258 & 0.9392 & 0.9428 & 0.9456 & 0.9463 & 0.9469 & 0.9475 \\
+		Dresser confidence & 0.0114 & 0.0158 & 0.0177 & 0.0183 & 0.01868 & 0.01899 & 0.0191 & 0.0191 \\
 		\hline
 	\end{tabular}
-	\caption{Table of the network confidence at the end of AE generation as a function of iteration count}
+	\caption{Table of the data (rounded to 4 figures) corresponding to figure \ref{fig:confidence-vs-iterations}}
 	\label{tab:confidence-vs-iterations}
 \end{table}
 
-% TODO 500... did i enter all the data so plots and tables show 500?
 The original image was again the panda from figure \ref{fig:ae-example-original}. Since acorns and dressers behaved very differently as target classes, both were tried for iterations varying from 10 to 500. For the acorn, the first two data points show the strongest increase in network confidence, by a little under $6.5\%$. Afterwards, the improvements quickly taper off and the network predictions start to saturate at slightly above $94\%$. This demonstrates that there exist pairs of images and target classes for which the fast gradient sign method stabilizes at a value below 1, even if ample computation time is provided.
 
-% plot of confidence vs. iterations
-% plot of confidence vs. coeff
+In contrast to the transformation towards an acorn prediction, the attempt to provoke a prediction as a dresser seems much less promising. While the former did not saturate around 1, it at least saturated around a high confidence value, being the clear top prediction of the network. The presumed dresser, though, hardly makes any progress. It attains a mere $1.1\%$ confidence with 10 iterations and only manages to achieve slightly under $2\%$ even if given 500 iterations. While this observation is not sufficient to conclude that turning a panda into an adversarial example of the dresser class is impossible with iterative FGSM\footnote{It might still be possible with a higher change coefficient, which will be analyzed below}, it clearly shows that for a given ANN, and thus fixed input dimension, a specific value for $c$ may work for one target class but not the other, even if the original image is identical. It is a necessary conclusion that the way in which adversarial examples are structured in the input space is not symmetrical w.r.t the target class.
+
+Another parameter whose impact on the success of adversarial example generation is worth exploring is the adaption strength coefficient $c$. The choice for this value has to strike a balance between the algorithm's capability to modify the original image in order to trick the model, and limiting the distance traveled from the original image to ensure that the resulting AE will be visually indistinguishable from it. To gain some insight into this relation, GoogLeNet confidence on multiple adversarial target classes as a function of $c$ has been plotted in figure \ref{fig:confidence-vs-coeff}, while the precise values are given in table \ref{tab:confidence-vs-coeff}.
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.6\textwidth]{images/confidence-vs-coeff.png}
+	\caption{Plot of the network confidence at the end of AE generation as a function of adaption strength $c$. 100 iterations were performed.}
+	\label{fig:confidence-vs-coeff}
+\end{figure}
+
+\begin{table}[htp]
+	\begin{tabular}{|l|llllllll|}
+		\hline
+		c & 0.3 & 0.6 & 0.9 & 1.2 & 1.5 & 1.8 & 2.1 & 2.4 \\
+		\hline
+		Acorn confidence & 0.0015 & 0.2247 & 0.9456 & 0.9981 & 0.9999 & 1.0 & 1.0 & 1.0 \\
+		Dresser confidence & 0.0001 & 0.0022 & 0.0187 & 0.1004 & 0.3051 & 0.6056 & 0.7792 & 0.9476 \\
+		\hline
+	\end{tabular}
+	\caption{Table of the data (rounded to 4 figures) corresponding to figure \ref{fig:confidence-vs-coeff}}
+	\label{tab:confidence-vs-coeff}
+\end{table}
+
+The graph shows that a value of $c = 0.9$, which was used for almost all AEs in this section, is a reasonable choice for the acorn target class. Lower values like 0.6 might still mislead the network to predict an acorn as the most likely class, but with significantly lower confidence. Slightly higher values manage to boost confidence to $100\%$, at which point the curve saturates. One can also observe that with a significantly higher $c$, it is possible to convince the CNN that the panda is a dresser. The curve for the dresser is of sigmoidal shape, starting its slope round $c = 0.9$, and saturating with a confidence level of $1.0$ near the end of its sloped segment around $c = 2.4$. These values are substantially higher than what could be achieved by increasing the number of iterations. This indicates that no adversarial examples for the dresser class exist as close to the original image as they do for the acorn class, but one might be able to find them further outward.
+
+Yet, it just shows that GoogLeNet can be led to believe that the input shows a dresser. For the modified image to be an \emph{adversarial example}, it still needs to retain its appearance as a panda. Therefore, it is appropriate to inspect the generated images before appraising the success of this process. Since the confidence at $c = 1.8$ is the first one above $50\%$ and thus sure to make the network predict a dresser, the corresponding AE is shown in figure \ref{fig:ae-panda-dresser-1dot8}.
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[scale=0.90]{images/aes_new/panda_dresser_100_1dot8.png}
+	\caption{Result of iterative FGSM on \ref{fig:ae-example-original} with $c = 1.8$, $100$ iterations and \emph{n03016953, dresser} as target class.}
+	\label{fig:ae-panda-dresser-1dot8}
+\end{figure}
+
+% TODO fix reference to sec:spectra
+% TODO find source for claim that deep NNs operate like human vision
+Here, one can clearly see the visual artifacts that arose from modification of the original image. The image fatures a high concentration of intense color spots that follow a noise-like distribution around the panda's forehead. One can also observe a similar, but more sparse pattern on the left side\footnote{the beholder's left} of the panda's nose. These spots are high-amplitude, high-frequency features which lead to an analysis of the frequency space of adversarial examples in section \ref{sec:spectra}. The impact of this circumstance is uncertain. On the one hand, it is easy to tell the supposed adversarial example apart from the original image, or any other regular image, making it somewhat not adversarial. On the other hand, the picture clearly shows what is still a panda, and one would ask of a CNN to be able to correctly identify it as such. While this finding doesn't disprove the ambitious claim that deep neural networks process images in a similar fashion to human brains, it highlights that even if they do, they can be effectively distracted and confused by localized, nonsensical information.
+
+%Since figure \ref{fig:ae-panda-dresser-1dot8} revealed that the changes made by FGSM seem to be concentrated at one or very few regions, it is worth investigating whether that pattern holds for other combinations of original and target class. For the purpose of visual inspection,
+
+\subsection{Iterative properties of the transformation progress}
+Even though iterative FGSM utilizes the same fundamental idea for generating adversarial examples as its non-iterative forerunner, it constitutes a change of paradigm in the algorithm. It is therefore advisable to examine the properties of the iterative nature of this new variant in more detail. Two facets of this nature have already been inspected in previous parts of this section: The relationship between the changes in the adversarial image and the first gradient, and how the final confidence of the network depends on the number of steps under a fixed value for $c$. One thing not yet analyzed is the development of the CNN's confidence over the course of these steps. Hence, two plots for $10$ and $100$ iterations respectively are provided in figure
+
+% TODO 300 iterations
+% TODO curve for a failed transformation, i.e. panda->dresser
+% TODO there should not be a value for iteration 0
+\begin{figure}[htp]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{confidence-evolution-10.png}
+        \caption{10 iterations}
+        \label{fig:confidence-evolution-10}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{confidence-evolution-100.png}
+        \caption{100 iterations}
+        \label{fig:confidence-evolution-100}
+    \end{subfigure}
+    \caption{Development of network confidence over the iterations. Panda turned into an AE of class \emph{n12267677, acorn}, $c = 0.9$}
+    \label{fig:confidence-evolution}
+\end{figure}
+
+Again, a panda has been transformed into what the network considers to be an acorn. Even though \ref{fig:confidence-evolution-100} has $10$ times as many iterations as \ref{fig:confidence-evolution-10}, the plots look strikingly similar. This is not entirely unexpected, though. Remember that the algorithm links step size and iteration count in the adaption strength coefficient together, so increasing iterations while keeping $c$ constant leads to a smaller step size and vice-versa\footnote{Reasons why this link may be desireable are given in section \ref{sec:iterative-fgsm}}.
+
+% TODO fix reference sec:predicting-generation-process
+% TODO elaborate more on the fact that some confidence goes to other classes.
+Initially, the network confidently predicts the correct class. During the initial iterations, the confidence for this class drops, while the confidence of the adversarial class stays practically at $0$. Only later, at about the halfway point in the optimization process, does its confidence begin to rise until it reaches its maximum at the last iteration. The temporal delay between these two developments is surprising. GoogLeNet uses a final softmax layer, so all class probabilities sum up to $1$. This means that some of the confidence must be going to other classes not directly involved this process. The overall shape of the confidence curve is sigmoidal (although this is hard to see with 10 iterations). This observation serves as a basis for an attempt to predict the success of an AE generation process in section \ref{sec:predicting-generation-process}
+
+% TODO some images to illustrate the unknown classes teddy, hamster and custard apple
+For the 100 iteration run, the minimal combined probability for true and target class is reached after iteration $53$. To see what the network thinks of the adversarial-image to-be at this point, the top 5 predictions alongside their corresponding probabilities are summarized in table \ref{tab:ae-intermediate}. The remaining probabilities appear to go to related classes, the panda and teddy classes for instance share bear-ness, and it is also not a long shot to the hamster, which is also furry and has a comparable body shape with a voluminous torso and short extremities. A custard apple, on the other hand, has convincing similarities to the top part of an acorn.
+
+\begin{table}[htp]
+	\centering
+	\begin{tabular}{|l|l|}
+		\hline
+		Class & Probability \\
+		\hline
+		n02510455, giant panda & 0.1064 \\
+		n04399382, teddy & 0.0929 \\
+		n02342885, hamster & 0.0433 \\
+		n12267677, acorn & 0.0371 \\
+		n07760859, custard apple & 0.0364 \\
+		\hline
+	\end{tabular}
+	\caption{Rounded to 4 figures}
+	\label{tab:ae-intermediate}
+\end{table}
+
+A tempting fallacy would be to look at \ref{fig:confidence-evolution-10}, notice the distinctly non-zero slope at the end for the acorn class and conclude that with 10 iterations, the algorithm has been prematurely terminated. While it is true that more iterations improve the final prediction in the panda-acorn combination (cf. table \ref{tab:confidence-vs-iterations}), the reasons why this happens are a bit more intricate. In a lot of iterative algorithms, performing an additional step has no bearing on the previous iterations. However, since algorithm \ref{alg:make-adversarial} couples iterations and step size, choosing 11 iterations would not simply lead to an additional step, but lead to more, smaller steps. Thus, it is really the path taken by the algorithm that improves if more iterations are provided, not the distance traveled\footnote{Though one could in theory also just perform an additional step of size $\frac{c}{10}$ and most probably gain a higher confidence as a result.}. This is a superior approach, since one stays closer to the original image, strengthening the adversarial properties of the output.
 
 % TODO
-% 100 iterations
-% How does this compare to panda -> acorn with 1 iteration?
-% Plot extreme AEs, generated with very high c
-% Plots how original and adversarial class evolve over time
-% AE by superposition
 % What happens if we make a panda less / more like a panda?
+% AE by superposition
+% Plot extreme AEs, generated with very high c
+% How does this compare to panda -> acorn with 1 iteration?
 
 
+
+
+
+
+
+
+%\section{Mass generation of AEs}
+% TODO I concluded that one coefficient doesn't work well for a given network / input size, or even one specific image when trying to turn it into multiple adversarial classes. Still, batch generation of AEs was done with one coefficient for all. Explain this with computation time restraints.
+% Describe Googlenet
+% Describe data sets
 
 
 
@@ -762,8 +859,8 @@ The original image was again the panda from figure \ref{fig:ae-example-original}
 
 %\section{Predicting the generation progress}
 
-% Describe Googlenet
-% Describe data sets
+%\section{Conclusion}
+
 
 \begin{appendix}
 	\section{Visualizing differences between original image and adver\-sarial image}
@@ -807,6 +904,8 @@ The original image was again the panda from figure \ref{fig:ae-example-original}
 % Replace can't, don't etc with proper language
 % URL in References where important
 % urlseen from .ref file doesn't show up i references
+% intoduction for every section
+% Add [h!!!!!!] to a lot of figures
 
 % Plots how original and adversarial class evolve over time
 % AE by superposition

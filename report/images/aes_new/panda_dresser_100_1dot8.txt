@@ -1,0 +1,6 @@
+['n03016953 ', 'chiffonier', ' commode']: 64.27% certainty
+['n03337140 ', 'file', ' file cabinet', ' filing cabinet']: 7.53% certainty
+['n01882714 ', 'koala', ' koala bear', ' kangaroo bear', ' native bear', ' Phascolarctos cinereus']: 2.1% certainty
+['n01883070 ', 'wombat']: 1.34% certainty
+['n02111889 ', 'Samoyed', ' Samoyede']: 1.12% certainty
+['n02120079 ', 'Arctic fox', ' white fox', ' Alopex lagopus']: 1.1% certainty
