@@ -1,0 +1,6 @@
+['n03016953 ', 'chiffonier', ' commode']: 99.24% certainty
+['n03337140 ', 'file', ' file cabinet', ' filing cabinet']: 0.24% certainty
+['n02105412 ', 'kelpie']: 0.03% certainty
+['n01883070 ', 'wombat']: 0.03% certainty
+['n03018349 ', 'china cabinet', ' china closet']: 0.02% certainty
+['n01882714 ', 'koala', ' koala bear', ' kangaroo bear', ' native bear', ' Phascolarctos cinereus']: 0.02% certainty

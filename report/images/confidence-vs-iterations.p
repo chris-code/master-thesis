@@ -4,7 +4,7 @@ set output "confidence-vs-iterations.png"
 
 # set size ratio 1
 set xlabel 'Iterations'
-set ylabel 'Confidence'
+set ylabel 'GoogLeNet Confidence'
 # set xrange [-6:6]
 set yrange [-0.05:1.1]
 # set xzeroaxis
