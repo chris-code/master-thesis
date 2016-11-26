@@ -1,0 +1,6 @@
+['n12267677 ', 'acorn']: 94.49% certainty
+['n07760859 ', 'custard apple']: 0.6% certainty
+['n02490219 ', 'marmoset']: 0.46% certainty
+['n01775062 ', 'wolf spider', ' hunting spider']: 0.38% certainty
+['n02493509 ', 'titi', ' titi monkey']: 0.29% certainty
+['n12620546 ', 'hip', ' rose hip', ' rosehip']: 0.27% certainty
