@@ -6,7 +6,7 @@ net: "/media/sf_Masterarbeit/master-thesis/coil-100/network.prototxt"
 max_iter: 75600
 
 # Learning rate
-base_lr: 0.1
+base_lr: 0.01
 lr_policy: "exp"
 gamma: 0.999999
 
