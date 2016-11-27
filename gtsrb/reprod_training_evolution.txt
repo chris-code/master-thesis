@@ -1,0 +1,70 @@
+117627
+ Loss: 0.068878
+ accuracy/top-1 = 0.9775
+ accuracy/top-3 = 0.99375
+ loss = 0.068878 (* 1 = 0.068878 loss)
+156836
+ Loss: 0.0691517
+ accuracy/top-1 = 0.9775
+ accuracy/top-3 = 0.99375
+ loss = 0.0691517 (* 1 = 0.0691517 loss)
+196045
+ Loss: 0.069372
+ accuracy/top-1 = 0.9775
+ accuracy/top-3 = 0.99375
+ loss = 0.069372 (* 1 = 0.069372 loss)
+235254
+ Loss: 0.0695302
+ accuracy/top-1 = 0.9775
+ accuracy/top-3 = 0.99375
+ loss = 0.0695302 (* 1 = 0.0695302 loss)
+274463
+ Loss: 0.0696139
+ accuracy/top-1 = 0.9775
+ accuracy/top-3 = 0.99375
+ loss = 0.0696139 (* 1 = 0.0696139 loss)
+313672
+ Loss: 0.069736
+ accuracy/top-1 = 0.9775
+ accuracy/top-3 = 0.99375
+ loss = 0.069736 (* 1 = 0.069736 loss)
+352881
+ Loss: 0.0698121
+ accuracy/top-1 = 0.9775
+ accuracy/top-3 = 0.99375
+ loss = 0.0698121 (* 1 = 0.0698121 loss)
+392090
+ Loss: 0.0698941
+ accuracy/top-1 = 0.9775
+ accuracy/top-3 = 0.99375
+ loss = 0.0698941 (* 1 = 0.0698941 loss)
+39209
+ Loss: 0.0681645
+ accuracy/top-1 = 0.9775
+ accuracy/top-3 = 0.99375
+ loss = 0.0681645 (* 1 = 0.0681645 loss)
+431299
+ Loss: 0.0699827
+ accuracy/top-1 = 0.9775
+ accuracy/top-3 = 0.99375
+ loss = 0.0699827 (* 1 = 0.0699827 loss)
+470508
+ Loss: 0.0700674
+ accuracy/top-1 = 0.9775
+ accuracy/top-3 = 0.99375
+ loss = 0.0700674 (* 1 = 0.0700674 loss)
+509717
+ Loss: 0.0701077
+ accuracy/top-1 = 0.9775
+ accuracy/top-3 = 0.99375
+ loss = 0.0701077 (* 1 = 0.0701077 loss)
+548926
+ Loss: 0.0701666
+ accuracy/top-1 = 0.9775
+ accuracy/top-3 = 0.99375
+ loss = 0.0701666 (* 1 = 0.0701666 loss)
+78418
+ Loss: 0.068494
+ accuracy/top-1 = 0.9775
+ accuracy/top-3 = 0.99375
+ loss = 0.068494 (* 1 = 0.068494 loss)
