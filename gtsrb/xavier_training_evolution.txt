@@ -1,3 +1,13 @@
+39209
+ Loss: 6.57206
+ accuracy/top-1 = 0.05375
+ accuracy/top-3 = 0.11125
+ loss = 6.57206 (* 1 = 6.57206 loss)
+78418
+ Loss: 0.106612
+ accuracy/top-1 = 0.9725
+ accuracy/top-3 = 0.98625
+ loss = 0.106612 (* 1 = 0.106612 loss)
 117627
  Loss: 0.101457
  accuracy/top-1 = 0.97375
@@ -38,11 +48,6 @@
  accuracy/top-1 = 0.975
  accuracy/top-3 = 0.98875
  loss = 0.101137 (* 1 = 0.101137 loss)
-39209
- Loss: 6.57206
- accuracy/top-1 = 0.05375
- accuracy/top-3 = 0.11125
- loss = 6.57206 (* 1 = 6.57206 loss)
 431299
  Loss: 0.101128
  accuracy/top-1 = 0.975
@@ -63,8 +68,3 @@
  accuracy/top-1 = 0.975
  accuracy/top-3 = 0.98875
  loss = 0.100957 (* 1 = 0.100957 loss)
-78418
- Loss: 0.106612
- accuracy/top-1 = 0.9725
- accuracy/top-3 = 0.98625
- loss = 0.106612 (* 1 = 0.106612 loss)

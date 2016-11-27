@@ -515,53 +515,37 @@ Because the chosen network is not powerful enough to disentangle the classes, it
 
 \section{Iterative Fast Gradient Sign Method}
 \label{sec:iterative-fgsm}
-% TODO we focus on images
-In order to gain insights into the nature and properties of adversarial examples, it is expedient to have a great number of them at one's disposal. This allows for a more automated, larger-scale analysis than visual inspection of AEs\footnote{though visual inspection is also a useful method and is employed in this thesis} and can unveil more general characteristics. To this end, multiple large-scale batches of adversarial examples were created based on different data sets and various configurations of hyper-parameters. 
+% TODO FIXME expand this section
+In order for large-scale quantitative analysis of the properties of adversarial images to be feasible, a method for efficiently generating adversarial examples is expedient. Apart from a reasonable use of computation time, such a method should also produce AEs with reliable quality, meaning that it should not try to fool a model by sometimes making clearly visible changes to the original data. This would necessitate visual inspection of all created AEs. Ideally, the maximal perturbation performed by the algorithm is knowable beforehand so one can be sure that all generated examples which manage to trick the network are actually adversarial. This section presents an algorithm that fulfills these two criteria.
 
-% TODO almost all? Not just all?
-% FIXME What about COIL 100? Has it been added?
-Apart from parameters choices, the biggest determinants of the specifics of adversarial examples are the data set used to provide the starting points in the generation process and the models that are employed to provide the gradients required by the FGSM. In this thesis, almost all AEs are based on one of two datasets: \emph{GTSRB} and \emph{ImageNet}. The former is a collection of traffic signs taken from german roads at various points during approach and the latter is a general-purpose aggregate of online images with diverse classes. Both of these datasets are combined with a respective network. For GTSRB, a network based on \cite{multi-column-neural-network-gtsrb} was used to generate adversarial examples, while with ImageNet, the \emph{GoogLeNet} network from \cite{going-deeper-with-convolutions} was used. Both networks were trained on their respective data sets\footnote{But GoogLeNet due to both its size and the size of the data set were not trained from scratch, but the weights provided by the \emph{caffe} software were used instead}.
+% FIXME references
+This algorithm will be used both to create the individual adversarial examples of section \ref{sec:fundamental-properties} and the large amount of AEs described in section \ref{sec:generation-large-sets}, which serve as a basis for the analyses in sections \ref{sec:foo}, \ref{sec:bar} and \ref{sec:baz}.
 
-At this point it is vital to lay out in detail how the adversarial examples inspected and used in this thesis are generated. The process is based on the Fast Gradient Sign Method introduced in section \ref{sec:fast-gradient-sign-method} and detailed in equation \eqref{eq:fast-gradient-sign-method}. Briefly stated, the gradient of the loss function w.r.t. the input data is used to determine the direction in input space towards which the data should be altered. Of course, in order to generate AEs and trick the networks into predicting a false class, a false label is used in the loss function. This approach lends itself to an iterative algorithm, formalized as pseudocode in algorithm \ref{alg:make-adversarial}.
+At this point it is vital to lay out in detail how the adversarial examples inspected and used in this thesis are generated. The process is based on the Fast Gradient Sign Method introduced in section \ref{sec:fast-gradient-sign-method} and detailed in equation \eqref{eq:fast-gradient-sign-method}. Briefly stated, the gradient of the loss function w.r.t. the input data is used to determine the direction in input space along which the data should be altered. Of course, in order to generate AEs and trick the networks into predicting a false class, a false label is used in the loss function. This approach lends itself to an iterative algorithm, formalized as pseudocode in algorithm \ref{alg:make-adversarial}.
 
 % TODO grad[0] indicates gradient for input
-% TODO rename to iterative FGSM
 \newcommand\numIt{\text{num\_iterations}}
 \newcommand\advEx{\text{ae}}
 \newcommand\grad{\text{grad}}
 \begin{algorithm}
 	\begin{algorithmic}
-	\Function{MakeAdversarial}{input\_data, l, c, \numIt}
-	\State \advEx $\ \gets$ input\_data
-	\State $i \gets 0$
-	\While{$i < \numIt$}
-		\State $\grad \gets$ \Call{Network.Backprop}{\advEx, l}
-		\State $r \gets \frac{c}{\numIt} \cdot \sign \braces{\grad[0]}$
-		\State \advEx $\ \gets$ $\advEx + r$
-		\State $i \gets i + 1$
-	\EndWhile
-	\State \Return \advEx
-	\EndFunction
+		\Function{IterativeFGSM}{input\_data, l, c, \numIt}
+			\State \advEx $\ \gets$ input\_data
+			\State $i \gets 0$
+			\While{$i < \numIt$}
+				\State $\grad \gets$ \Call{Network.Backprop}{\advEx, l}
+				\State $r \gets \frac{c}{\numIt} \cdot \sign \braces{\grad[0]}$
+				\State \advEx $\ \gets$ $\advEx + r$
+				\State $i \gets i + 1$
+			\EndWhile
+			\State \Return \advEx
+		\EndFunction
 	\end{algorithmic}
 	\caption{Generate adversarial examples with iterative FGSM}
 	\label{alg:make-adversarial}
 \end{algorithm}
 
 This approach is based on \cite{how-to-trick-neural-network-panda-to-vulture} and relies on an iterative strengthening of an image's adversarial properties. It is described in a data-agnostic manner, even though it is only used for images in the scope of this thesis. The AE gets initialized with the image data. Then a selectable number of iterations is performed where as a first step, the gradient is computed via backpropagation. Subsequently, the gradient of the input data is extracted\footnote{In the pseudo-code this is indicated by \emph{grad[0]}, but the specifics will depend on the software and libraries used} and its sign is computed, in keeping with FGSM. This signed gradient is then modulated by a coefficient and added to the adversarial data. This coefficient, however, slightly deviates from the description in \eqref{eq:fast-gradient-sign-method}. Perturbation $r$ is formed by modulating the gradient with $\frac{c}{\numIt}$, meaning that the adaption strength coefficient $c$ is scaled with the number of iterations. It is functionally equivalent with simply choosing a smaller $c$, but provides the advantage that the parameter scales are comparable to the single-step approach of \cite{explaining-and-harnessing-adversarial-examples}. There, a value of $0.9$ means a distance of $0.9 \cdot \norm{r}$ traveled in input space, and here, it indicates the same distance traveled, although the path may be curved so the distance between start and end point may be smaller. Thus, a value of $c = 0.9$ describes a sphere of radius $0.9 \cdot \norm{r}$ around the starting location, containing all eligible end points for the AE search. Besides comparability, this geometric meaning is another reason to link step size and iteration count.
-
-%\section{ImageNet on GoogLeNet}
-%\section{GTSRB on GTSRB-Net}
-
-%% How is it done specifically?
-% Imagenet
-% Googlenet
-% I didn't train googlenet myself
-% AEs for Imagenet and Googlenet
-% GTSRB
-% GTSRB-Net
-% AEs for GTSRB and GTSRB-Net
-
-
 
 
 
@@ -574,6 +558,7 @@ This approach is based on \cite{how-to-trick-neural-network-panda-to-vulture} an
 
 
 \section{Analysis of fundamental properties}
+\label{sec:fundamental-properties}
 With the method presented in section \ref{sec:iterative-fgsm}, it is possible to create convincing adversarial examples that both trick the network into predicting a false class, and are indistinguishable from regular images by humans at the same time. How well it works depends on the original image, target class and careful choice of the parameters and will be below later, but for now a functional example is given in figure \ref{fig:ae-example}.
 
 \begin{figure}[htp]
@@ -830,14 +815,227 @@ A tempting fallacy would be to look at \ref{fig:confidence-evolution-10}, notice
 
 
 
-%\section{Mass generation of AEs}
+\section{Generation of large AE sets}
+\label{sec:generation-large-sets}
 % TODO I concluded that one coefficient doesn't work well for a given network / input size, or even one specific image when trying to turn it into multiple adversarial classes. Still, batch generation of AEs was done with one coefficient for all. Explain this with computation time restraints.
-% Describe Googlenet
-% Describe data sets
+
+% TODO we focus on images
+In order to gain insights into the nature and properties of adversarial examples, it is expedient to have a great number of them at one's disposal. This allows for a more automated, larger-scale analysis than visual inspection of AEs\footnote{though visual inspection is also a useful method and is employed in this thesis} and can unveil more general characteristics. To this end, multiple large-scale batches of adversarial examples were created based on different data sets and various configurations of hyper-parameters with the iterative FGSM algorithm detailed in section \ref{sec:iterative-fgsm}. 
+
+% TODO almost all? Not just all?
+% FIXME What about COIL 100? Has it been added?
+Apart from parameters choices, the biggest determinants of the specifics of adversarial examples are the data set used to provide the starting points in the generation process and the models that are employed to provide the gradients required by the FGSM. In this thesis, almost all AEs are based on one of two datasets: \emph{GTSRB} \cite{gtsrb-description} and \emph{ImageNet} \cite{imagenet-large-scale-hierarchical-image-database}. The former is a collection of traffic signs taken from german roads at various points during approach and the latter is a general-purpose aggregate of online images with diverse classes. Both of these datasets are combined with a respective network. For GTSRB, a network based on \cite{multi-column-neural-network-gtsrb} was used to generate adversarial examples, while with ImageNet, the \emph{GoogLeNet} network from \cite{going-deeper-with-convolutions} was used. Both networks were trained on their respective data sets\footnote{But GoogLeNet due to both its size and the size of the data set were not trained from scratch, but the weights provided by the \emph{caffe} software were used instead}.
+
+Although the specifics of AE generation vary between the two dataset-network pairs because the different storage layouts on disk necessitate different bookkeeping code, the overall procedure is the same and will now described before characteristics of each data set are discussed in sections \ref{sec:generation-large-sets:gtsrb} and \ref{sec:generation-large-sets:imagenet}. An algorithmic formulation is presented in algorithm \ref{alg:generate-ae-batches}.
+
+\begin{algorithm}
+	\begin{algorithmic}
+			\ForAll{oc $\in$ original\_class\_list}
+				\State cr $\gets$ \Call{get\_random\_image}{class}
+				\ForAll{tc $\in$ target\_class\_list}
+					\State ae $\gets$ \Call{IterativeFGSM}{cr, tc, c, iterations} \Comment{save ae for later use}
+				\EndFor
+			\EndFor
+	\end{algorithmic}
+	\caption{Generate adversarial examples with iterative FGSM}
+	\label{alg:generate-ae-batches}
+\end{algorithm}
+
+The \emph{original\_class\_list} contains the classes from each of which a random class representative (\emph{cr}) should be picked. These class representatives will be transformed via iterative FGSM to each of the classes in the \emph{target\_class\_list}. For the GTSRB data set, the original and target class lists are identical and contain all $43$ classes, but for ImageNet this is infeasible because firstly it contains plethora of 1000 classes and secondly it uses the much larger GoogLeNet, so generating each individual adversarial example is much more computationally expensive. Hence, AE batches on ImageNet only use a subset of the available classes for \emph{original\_class\_list} and \emph{target\_class\_list}.
+
+One complication needs to be mentioned at this point. The actual iterative FGSM code used in algorithm \ref{alg:generate-ae-batches} deviates slightly from the description in algorithm \ref{alg:make-adversarial}. Specifically, it terminated after reaching $90\%$ confidence on the target class. This was intended to save computation time, but as was discovered later and is described below, the turnout for such good AEs is very low, and such high confidences are only achieved near the end of iterative FGSM (if at all). This also means that the condition for this termination was hardly ever fulfilled, and thus should have negligible impact, but it is mentioned here regardless for reproducibility reasons.
+
+% TODO check Man vs Computer Benchmarking ML algorithms for traffic sign recognition.pdf to see if there is anything noteworthy to add about GTSRB
+\subsection{GTSRB and GTSRB-Net}
+\label{sec:generation-large-sets:gtsrb}
+The GTSRB (German Traffic Sign Recognition Benchmark) database is a large accumulation of images of German traffic signs. The photos were taken from 10 hours of video footage while driving on the streets of germany in 2010. From the footage, a total of 51.839 images were extracted, split into a training set of 39.209 and a test set of 12.630 images, each of which contains exactly 1 sign. A few select images with good visibility are given in figure \ref{fig:gtsrb-overview}, more problematic instances are discussed below.
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=\textwidth]{images/gtsrb/overview.png}
+	\caption{Example images from GTSRB}
+	\label{fig:gtsrb-overview}
+\end{figure}
+
+There are 43 classes with vastly different class frequencies, where the largest class contains more than 10 times as many images as the smallest classes. Image sizes vary greatly, ranging from $15\times15$ to $250\times 250$, but are generally small and not necessarily square. They come with at least a 10\% border around the traffic sign, and annotations are provided indicating a rectangular bounding box around the sign. The images are ordered into \emph{tracks}, where each track contains exactly 30 images of one physical traffic sign instance taken from various distances and angles, as the car approached it. There are at least 9 tracks per class. GTSRB poses a few challenges to classification models, and figure \ref{fig:gtsrb-challenges} is meant to illustrate some of them.
+
+% TODO shadows and occlusion
+\begin{figure}[htp]
+    \centering
+    \begin{subfigure}[b]{0.30\textwidth}
+    		\centering
+        \includegraphics[width=\textwidth]{gtsrb/problems/class23_00003_00029.jpg}
+        \caption{Blur}
+        \label{fig:gtsrb-challenges-blur}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[b]{0.30\textwidth}
+    		\centering
+        \includegraphics[width=\textwidth]{gtsrb/problems/class26_00014_00029.jpg}
+        \caption{Overexposure}
+        \label{fig:gtsrb-challenges-overexposure}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[b]{0.30\textwidth}
+    		\centering
+        \includegraphics[width=\textwidth]{gtsrb/problems/class19_00004_00029.jpg}
+        \caption{Low contrast}
+        \label{fig:gtsrb-challenges-contrast}
+    \end{subfigure}
+    
+    \begin{subfigure}[b]{0.30\textwidth}
+    		\centering
+        \includegraphics{gtsrb/problems/class09_00004_00029.jpg}
+        \caption{Similarity}
+        \label{fig:gtsrb-challenges-similar-a}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.30\textwidth}
+    		\centering
+        \includegraphics{gtsrb/problems/class10_00025_00029.jpg}
+        \caption{Similarity}
+        \label{fig:gtsrb-challenges-similar-b}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.30\textwidth}
+    		\centering
+        \includegraphics{gtsrb/problems/class28_00012_00003.jpg}
+        \caption{Low resolution}
+        \label{fig:gtsrb-challenges-resolution}
+    \end{subfigure}
+    \caption{Hand-picked images illustrating various impediments in the GTSRB dataset}
+    \label{fig:gtsrb-challenges}
+\end{figure}
+
+As one can see, the dataset contains very blurry pictures (\ref{fig:gtsrb-challenges-blur}), as well as overexposed (\ref{fig:gtsrb-challenges-overexposure}) pictures and those severely lacking in contrast\footnote{If this image appears completely black, this is not by mistake. One can hardly make out the sign's borders when zooming in to the image file.} (\ref{fig:gtsrb-challenges-contrast}), all of which impede correct classification. Another kind of challenge arises from images like \ref{fig:gtsrb-challenges-similar-a} and \ref{fig:gtsrb-challenges-similar-b}. Even though they belong to different classes, they are very similar. This alone makes classification hard, but this is especially problematic here because thanks to occlusion and shadows, the data teaches the model that images which look completely different can and often do belong to the same class. Additionally, GTSRB contains some extremely tiny images (\ref{fig:gtsrb-challenges-resolution}), so that sometimes even humans can't be sure of the correct class.
+
+% TODO table to summarize GTSRB properties
+
+% TODO clarify that only one network is used, the cited paper uses a committee
+In order to generate adversarial examples, a model that can provide the gradients for the (iterative) fast gradient sign method is required. Hence, a CNN was trained on the training data portion of GTSRB. It is based on \cite{multi-column-neural-network-gtsrb} and will be refered to as \emph{GTSRB-Net} within this thesis. The layout, hyper-parameter choices and training method for this network are detailed below.
+
+GTSRB-Net operates on images containing RGB color information (3 channels) with a resolution of $48 \times 48$ pixels. Since the network accepts only one resolution, the GTSRB data needs to be adapted. Details regarding this will follow below. It is a convolutional neural network, where the convolutional part is succeeded by conventional, fully connected layers. Table \ref{tab:gtsrb-layout} specifies the layout details on a per-layer basis.
+
+% TODO explain bias term
+\begin{table}[htp]
+	\centering
+	\begin{tabular}{|l|lll|}
+		\hline
+		Layer & Type & Parameters & Activation function \\
+		\hline
+		0 & Input & $3 \times 48 \times 48$ & - \\
+		1 & Convolution & 300 kernels of size $7 \times 7$, & tanh \\
+		& & producing 100 maps & \\
+		2 & Max-Pooling & Area $2\times 2$, stride 2 & - \\
+		3 & Convolution & 15000 kernels of size $4 \times 4$, & tanh \\
+		& & producing 150 maps & \\
+		4 & Max-Pooling & Area $2\times 2$, stride 2 & - \\
+		5 & Convolution & 37000 kernels of size $4 \times 4$, & tanh \\
+		& & producing 250 maps & \\
+		6 & Max-Pooling & $2\times 2$, stride 2 & - \\
+		7 & Fully connected & 300 neurons, with bias term & tanh \\
+		8 & Fully connected & 43 neurons, with bias term & softmax \\
+		\hline
+	\end{tabular}
+	\caption{Layout of GTSRB-Net}
+	\label{tab:gtsrb-layout}
+\end{table}
+
+The first operation applied by the network is a series convolutions with 300 kernels, each of which has a size of $7 \times 7$. Since a combination of 3 input maps and 3 kernels results in 1 output map (cf. figure \ref{fig:convolutional-layer-maps}), the total number of output maps is 100. This first convolutional layer is followed by a max-pooling layer, which reduces 4 values in a $2 \times 2$ area to 1 value, considerably reducing the map size. This pattern of a convolutional layer and a subsequent max-pooling layer is repeated 2 times. The respective pooling layers use identical parameters, but the kernel size in layers 3 and 5 is reduced to $ 4 \times 4$ and the number of kernels changes to produce 150 and 250 output maps, respectively. After the final max-pooling operation, a fully connected layer links the remaining values in the 250 maps to 300 neurons. Finally, this layer is followed up by another fully connected layer, this time with 43 neurons, one for each traffic sign class.
+
+% TODO Glorot initialization
+All activation functions in this network are hyperbolic tangents, except for the last layer, which uses a softmax activation in order to produce outputs that can be interpreted as class probabilities. As far as initialization is concerned, a uniform distribution was used for all parameters in the model, where values were drawn from the range $\brackets{-0.05, 0.05}$.
+
+% TODO mention that rescaling was done with 'nearest' interpolation, and that this was an oversight
+As indicated above, the circumstance that the GTSRB images vary in resolution complicates training and requires special handling. A neural network only accepts a fixed input size, so the traffic signs need to be scaled to one common resolution. A resolution that is too low discards valuable information from the larger images, while an overly large resolution wastes computation time and makes it unduly easy to find adversarial examples (cf. section \ref{subsec:ae-linear-explanation}). In this instance, a resolution of $48 \times 48$ was chosen\footnote{The data set provides annotations indicating where within the border contained in each of the images the traffic sign is located. Only this part was extracted and scaled to the aforementioned resolution}.
+
+Apart from rescaling the images, one more preprocessing step was applied. As figure \ref{fig:gtsrb-challenges} demonstrates, especially when comparing \ref{fig:gtsrb-challenges-contrast} with the other images shown, there is a grave variability in the contrast of the images. In such a case, the performance can be greatly improved by normalizing the contrast, thereby relieving the CNN of an ordinary task so the learning can focus on the classification problem. Thus, contrast normalization\footnote{In the form of the \emph{autocontrast} function from the \emph{PIL} python libary} was applied to all images, both from the training and the test set. An example contrasting figure \ref{fig:gtsrb-challenges-contrast} and its preprocessed version are shown in figure \ref{fig:contrast-normalization}.
+
+\begin{figure}[htp]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+    		\centering
+        \includegraphics{gtsrb/problems/class19_00004_00029.jpg}
+        \caption{GTSRB image}
+        \label{fig:contrast-normalization-before}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[b]{0.45\textwidth}
+    		\centering
+        \includegraphics{gtsrb/problems/class19_00004_00029_normalized_contrast.jpg}
+        \caption{Contrast normalized variant}
+        \label{fig:contrast-normalization-after}
+    \end{subfigure}
+    \caption{Demonstration of contrast normalization}
+    \label{fig:contrast-normalization}
+\end{figure}
+
+% TODO low_gamma and Xavier
+Training of GTSRB-Net was done with a stochastic gradient descent, using a batch size of 16. The optimization ran for 14 epochs and tried to minimize the multinomial logistic loss. The weights were updated with a learning rate $\alpha$ according to equation \eqref{eq:caffe-learn-rate-exp}, where $b$ is the base learn rate of $0.1$, $\gamma = 0.999999$ and $i$ is the iteration, of which there were 548.926\footnote{Note that \emph{caffe}, the software used here, counts each presented image as its own iteration, even if they are combined into batches of size 16. Thus, 14 epochs for 39.209 images yields $14 \cdot 39.209 = 548.926$ iterations.}. In contrast to \cite{multi-column-neural-network-gtsrb}, no data augmentation was applied during training.
+
+\begin{align}
+	\alpha &= b \cdot \gamma^i \label{eq:caffe-learn-rate-exp}
+\end{align}
+
+% TODO plot of performance w.r.t epochs
+% TODO FIXME realy 500 iterations?
+With these settings and the data prepared as stated above, training resulted in an optimized model that achieves a top-1 accuracy of $97.75\%$ and a top-3 accuracy of $99.375\%$ after the last epoch. Based on this model, several sets of adversarial examples were created in accordance with algorithm \ref{alg:generate-ae-batches}. All $43$ classes were in the \emph{original} and \emph{target} class lists, and an iteration count of 500 was used for each of those sets, so the only variable parameter was the adaption strength coefficient $c$. All used values for $c$ and corresponding AE batch names are provided in table \ref{tab:gtsrb-ae-batches}.
+
+% TODO are all of these batches used somewhere in this paper?
+\begin{table}[htp]
+	\centering
+	\begin{tabular}{|l|l|}
+		\hline
+		AE batch name & c \\
+		\hline
+		gtsrb-ae-0.005 & 0.005 \\
+		gtsrb-ae-0.025 & 0.025 \\
+		gtsrb-ae-0.037 & 0.037 \\
+		gtsrb-ae-0.05 & 0.05 \\
+		gtsrb-ae-0.1 & 0.1 \\
+		gtsrb-ae-0.5 & 0.5 \\
+		gtsrb-ae-0.9 & 0.9 \\
+		\hline
+	\end{tabular}
+	\caption{Generated AE batches and corresponding value of $c$}
+	\label{tab:gtsrb-ae-batches}
+\end{table}
 
 
+\subsection{ImageNet and GoogLeNet}
+\label{sec:generation-large-sets:imagenet}
 
+% Network parameters (layout, initialization, activation functions, number and size of filters)
+% Preprocessing, resizing, contrast normalization
+% Training parameters (loss, learn rate, decay, batch size, epoch count)
 
+%%%% Dataset:
+%% From when?
+%% Contains color images
+%% Number of images (and train/test split)
+%% Number of classes
+%% Each image contains exatly 1 sign
+%% Varying sizes, 15x15 to 250x250 pixels, not square
+%% Show some images
+%% Unbalanced class frequencies
+%% Organization into tracks (30 img/track, at least 9 tracks per class)
+%% At least 10% Border around sign, Bounding boxes
+%% One difficulty is that some classes are very similar, but illumination, occlusion etc. is vastly different
+%%%% Network:
+% Preprocessing, input size
+% Precalculated features are available but were not used
+
+% TODO
+%\section{GTSRB and GTSRB-Net}
+% Table summarizing GTSRB
+%\section{ImageNet and GoogLeNet}
+% I didn't train googlenet myself
+% Imagenet is quite organic in nature, but as of the time of this writing it contains X images.
+% Elaborate on this: GTSRB is good for AEs since the occluded, shadow-containing, blurry overexposed images of different aspect ratio make for a net that strongly generalizes. ImageNet, on the other hand, has very clean, full-size images, but has a lot of classes, and there is a lot of "proper" variation in the images for each class (not just shadows and blurr etc.)
+
+% How is it done specifically?
+% Present a few AEs for both
 
 
 
@@ -854,8 +1052,8 @@ A tempting fallacy would be to look at \ref{fig:confidence-evolution-10}, notice
 % How to calculate distribution w.r.t angle, how is it normalized?
 % Analysis w.r.t angle
 
-%\section{Class dependence of successful generation}
-% confusion matrix
+%\section{Class dependence of generation success}
+% confusion matrix (see http://benchmark.ini.rub.de/?section=gtsrb&subsection=dataset for confusion matrix example}
 
 %\section{Predicting the generation progress}
 
@@ -906,9 +1104,11 @@ A tempting fallacy would be to look at \ref{fig:confidence-evolution-10}, notice
 % urlseen from .ref file doesn't show up i references
 % intoduction for every section
 % Add [h!!!!!!] to a lot of figures
+% Remove [scale=...] and [width=...] specifications from figures where unnecessary
 
 % Plots how original and adversarial class evolve over time
 % AE by superposition
+% Is it possible to analyze the dependence of AE generation on data dimensionality by comparing GTSRB-Net and GoogleNet AEs?
 
 % Source for CNN performance on image processing tasks
 % Alex Krizhevsky, Ilya Sutskever, and Geoff Hinton. Imagenet classification with deep convolutional neural networks. In Advances in Neural Information Processing Systems 25, pages 1106–1114, 2012
