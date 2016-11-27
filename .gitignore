@@ -1,3 +1,5 @@
 *.pyc
 *.ipynb_checkpoints*
 *.swp
+report/Report.pdf
+*aes_old
