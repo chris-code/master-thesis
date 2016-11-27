@@ -1,0 +1,6 @@
+['n02510455 ', 'giant panda', ' panda', ' panda bear', ' coon bear', ' Ailuropoda melanoleuca']: 10.64% certainty
+['n04399382 ', 'teddy', ' teddy bear']: 9.29% certainty
+['n02342885 ', 'hamster']: 4.33% certainty
+['n12267677 ', 'acorn']: 3.71% certainty
+['n07760859 ', 'custard apple']: 3.64% certainty
+['n02364673 ', 'guinea pig', ' Cavia cobaya']: 3.27% certainty

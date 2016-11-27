@@ -44,7 +44,7 @@ layer {
 		lr_mult: 1
 	}
 	convolution_param {
-		num_output: 64
+		num_output: 32
 		kernel_size: 7
 		stride: 1
 		bias_term: false
@@ -80,7 +80,7 @@ layer {
 		lr_mult: 1
 	}
 	convolution_param {
-		num_output: 96
+		num_output: 48
 		kernel_size: 4
 		stride: 1
 		bias_term: false
@@ -119,7 +119,7 @@ layer {
 		lr_mult: 2
 	}
 	inner_product_param {
-		num_output: 250
+		num_output: 200
 		bias_term: true
 		weight_filler {
 			type: "xavier"
