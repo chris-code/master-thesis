@@ -1,12 +1,11 @@
 name: "COILNet"
-force_backward: true
 layer {
 	name: "coil"
 	type: "ImageData"
 	top: "data"
 	top: "label"
 	image_data_param {
-		source: "/media/sf_Masterarbeit/data/COIL100/train_images_labeled.txt"
+		source: "/local/mielecqs/data/COIL100/train_images_labeled.txt"
 		batch_size: 16
 		shuffle: true
 	}
@@ -23,7 +22,7 @@ layer {
 	top: "data"
 	top: "label"
 	image_data_param {
-		source: "/media/sf_Masterarbeit/data/COIL100/test_images_labeled.txt"
+		source: "/local/mielecqs/data/COIL100/test_images_labeled.txt"
 		batch_size: 16
 		shuffle: false
 	}
@@ -149,7 +148,7 @@ layer {
 		lr_mult: 2
 	}
 	inner_product_param {
-		num_output: 10
+		num_output: 100
 		bias_term: true
 		weight_filler {
 			type: "xavier"

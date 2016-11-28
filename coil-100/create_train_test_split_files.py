@@ -1,7 +1,7 @@
 import random
 import os
 
-COIL_PATH = '/media/sf_Masterarbeit/data/COIL100'
+COIL_PATH = '/local/mielecqs/data/COIL100'
 TRAIN_OUT_FILENAME = 'train_images_labeled.txt'
 TEST_OUT_FILENAME = 'test_images_labeled.txt'
 TEST_PORTION = 0.25
@@ -11,6 +11,7 @@ for img_filename in os.listdir(COIL_PATH):
 	if img_filename[-3:] != 'png':
 		continue
 	class_name = img_filename.split('_')[0][3:]
+	class_name = str(int(class_name) - 1)
 	
 	img_filename = COIL_PATH + '/' + img_filename
 	try:
