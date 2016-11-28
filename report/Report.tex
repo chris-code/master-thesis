@@ -980,7 +980,7 @@ Training of GTSRB-Net was done with a stochastic gradient descent, using a batch
 
 % TODO plot of performance w.r.t epochs
 % TODO FIXME realy 500 iterations?
-With these settings and the data prepared as stated above, training resulted in an optimized model that achieves a top-1 accuracy of $97.75\%$ and a top-3 accuracy of $99.375\%$ after the last epoch. Based on this model, several sets of adversarial examples were created in accordance with algorithm \ref{alg:generate-ae-batches}. All $43$ classes were in the \emph{original} and \emph{target} class lists, and an iteration count of 500 was used for each of those sets, so the only variable parameter was the adaption strength coefficient $c$. All used values for $c$ and corresponding AE batch names are provided in table \ref{tab:gtsrb-ae-batches}.
+With these settings and the data prepared as stated above, training resulted in an optimized model that achieves a top-1 accuracy of $97.75\%$ and a top-3 accuracy of $99.375\%$ on the test set after the last epoch. Based on this model, several sets of adversarial examples were created in accordance with algorithm \ref{alg:generate-ae-batches}. All $43$ classes were in the \emph{original} and \emph{target} class lists, and an iteration count of 500 was used for each of those sets, so the only variable parameter was the adaption strength coefficient $c$. All used values for $c$ and corresponding AE batch names are provided in table \ref{tab:gtsrb-ae-batches}.
 
 % TODO are all of these batches used somewhere in this paper?
 \begin{table}[htp]
@@ -1005,36 +1005,87 @@ With these settings and the data prepared as stated above, training resulted in 
 
 \subsection{ImageNet and GoogLeNet}
 \label{sec:generation-large-sets:imagenet}
+% TODO citation for WordNet
+ImageNet \cite{imagenet-large-scale-hierarchical-image-database} is an enormous image database with a broad application spectrum. ImageNet is quite organic in nature, but as of the time of this writing contains over 14 million images. Its structure is based on \emph{WordNet}, which structures words according to their similarity and hierarchy. The hierarchical structure is disregarded, though, all images are considered to belong to exactly one class. In fact, the entirety of ImageNet is too humongous to be considered here, so this thesis focuses on the \emph{ILSVRC2012} subset, used in the 2012 iteration of the \emph{ImageNet Large Scale Visual Recognition Challenge}, from which the acronym is derived. This subset already provides a non-hierarchical structure, with an abundance of 1000 distinct classes. It contains 1.281.167 images, a split into training and test data is not provided. Each class contains between 732 and 1300 images, with the cast majority tending to the upper limit.
 
+ImageNet comprises RGB color images of varying size and very diverse aspect ratio. This requires the data to be scaled, and possibly stretched and squashed, during training and deployment. The images also contain much more generous borders than those of GTSRB, or rather show the item to be classified in a broader environment, making the task of classification even harder\footnote{In general, ImageNet contains annotations, some with bounding boxes, but they are not included in the ILSVRC2012 set.}. Not surprising given a data set with 1000 classes, the classes themselves are quite diverse, as is illustrated in figure 
+
+% TODO scale images down even more so they take up less space
+% TODO FIXME add class names
+\begin{figure}[htp]
+    \centering
+    \begin{subfigure}[b]{0.30\textwidth}
+    		\centering
+        \includegraphics[width=\textwidth]{imagenet/examples/n01820546_31.JPEG}
+        \caption{n01820546}
+        \label{fig:imagenet-examples-1}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[b]{0.30\textwidth}
+    		\centering
+        \includegraphics[width=\textwidth]{imagenet/examples/n03530642_10006.JPEG}
+        \caption{n03530642}
+        \label{fig:imagenet-examples-2}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[b]{0.30\textwidth}
+    		\centering
+        \includegraphics[width=\textwidth]{imagenet/examples/n02281406_10006.JPEG}
+        \caption{n02281406}
+        \label{fig:imagenet-examples-3}
+    \end{subfigure}
+    
+    \begin{subfigure}[b]{0.30\textwidth}
+    		\centering
+        \includegraphics[width=\textwidth]{imagenet/examples/n04597913_10021.JPEG}
+        \caption{n04597913}
+        \label{fig:imagenet-examples-4}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[b]{0.30\textwidth}
+    		\centering
+        \includegraphics[width=\textwidth]{imagenet/examples/n02782093_1001.JPEG}
+        \caption{n02782093}
+        \label{fig:imagenet-examples-5}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[b]{0.30\textwidth}
+    		\centering
+        \includegraphics[width=\textwidth]{imagenet/examples/n03937543_10012.JPEG}
+        \caption{n03937543}
+        \label{fig:imagenet-examples-6}
+    \end{subfigure}
+    \caption{Images from ILSVRC2012 subset of ImageNet, illustrating class diversity.}
+    \label{fig:imagenet-examples}
+\end{figure}
+
+% TODO Is 27 layers deep (22 if pooling not counted)
+The network trained on this data set and used to generate adversarial examples from it is GoogLeNet, introduced in \cite{going-deeper-with-convolutions} as part of the \emph{Inception} architecture for CNNs. Even though the paper makes reasonable claims that the architecture uses available parameters very efficiently, it is still a bulky network with 27 layers\footnote{The paper mentions 22, not counting pooling layers since they are parameterless}. All layers use ReLU activation functions, except for the output, which uses a softmax function.
+
+% The weight initialization distribution is not mentioned\footnote{Though they did mention that an ensemble they constructed used the same initialization for all models} in \cite{going-deeper-with-convolutions}
+
+%%%%% Dataset:
+%% From when?
+%% Number of images (and train/test split)
+%% Number of classes
+%% How many images per class?
+%% Contains color images
+%% Varying sizes and aspect ratio
+%% Show some images
+%% Unbalanced class frequencies?
+%% Border around content?, Bounding boxes?
+%%%%% Network:
 % Network parameters (layout, initialization, activation functions, number and size of filters)
 % Preprocessing, resizing, contrast normalization
 % Training parameters (loss, learn rate, decay, batch size, epoch count)
 
-%%%% Dataset:
-%% From when?
-%% Contains color images
-%% Number of images (and train/test split)
-%% Number of classes
-%% Each image contains exatly 1 sign
-%% Varying sizes, 15x15 to 250x250 pixels, not square
-%% Show some images
-%% Unbalanced class frequencies
-%% Organization into tracks (30 img/track, at least 9 tracks per class)
-%% At least 10% Border around sign, Bounding boxes
-%% One difficulty is that some classes are very similar, but illumination, occlusion etc. is vastly different
-%%%% Network:
-% Preprocessing, input size
-% Precalculated features are available but were not used
-
 % TODO
-%\section{GTSRB and GTSRB-Net}
-% Table summarizing GTSRB
-%\section{ImageNet and GoogLeNet}
-% I didn't train googlenet myself
-% Imagenet is quite organic in nature, but as of the time of this writing it contains X images.
+% I didn't train googlenet myself, training described in \cite{going-deeper-with-convolutions}
 % Elaborate on this: GTSRB is good for AEs since the occluded, shadow-containing, blurry overexposed images of different aspect ratio make for a net that strongly generalizes. ImageNet, on the other hand, has very clean, full-size images, but has a lot of classes, and there is a lot of "proper" variation in the images for each class (not just shadows and blurr etc.)
-
-% How is it done specifically?
 % Present a few AEs for both
 
 
