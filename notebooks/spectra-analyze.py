@@ -3,129 +3,22 @@
 
 # In[1]:
 
-import matplotlib
-matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
-
 import math
-import random
-import sys
-import glob
-import csv
-import os
 import numpy as np
 import matplotlib.pyplot as ppt
 get_ipython().magic(u'matplotlib inline')
-import caffe
-import adex.core
-import adex.data
-import adex.googlenet
 
-AE_BATCH_NAME = 'imagenet-ae-50'
-MIN_AE_CONFIDENCE = 0.5
-MAX_ORIGINAL_IMAGES = 1000 # May be None
-
-CAFFE_ROOT = '/home/chrisbot/Projects/caffe'
-PROJECT_ROOT = '/media/sf_Masterarbeit'
-DATA_ROOT = PROJECT_ROOT + '/data/ILSVRC2012_img_train'
-AE_ROOT = PROJECT_ROOT + '/data/ILSVRC2012_img_train_AE_50'
-SAVE_PATH_PREFIX = PROJECT_ROOT + '/master-thesis/report/images/spectra/{0}-{1}'.format(AE_BATCH_NAME, MIN_AE_CONFIDENCE)
-ORIGINAL_SPECTRUM_PATH = PROJECT_ROOT + '/master-thesis/report/images/spectra/imagenet-spectrum.npy'
-
-BATCH_SIZE = 1
-net = adex.googlenet.load_model(CAFFE_ROOT, BATCH_SIZE)
-transformer = adex.googlenet.build_transformer(net)
+DATA_ROOT = '/media/sf_Masterarbeit/data'
+ORIG_SPECTRUM_PATH = DATA_ROOT + '/spectra/imagenet-ae-50-minconfidence-0.5-maxorig-100-orig.npy'
+AE_SPECTRUM_PATH = DATA_ROOT + '/spectra/imagenet-ae-50-minconfidence-0.5-maxorig-100-ae.npy'
+SAVE_PATH_PREFIX = '/media/sf_Masterarbeit/master-thesis/report/images/spectra/imagenet-ae-50-minconfidence-0.5-maxorig-100'
 
 
 # In[2]:
 
-def get_ae_list(ae_root, min_ae_confidence):
-    ae_list = []
-    for csv_path in glob.glob(ae_root + '/*.csv'):
-        with open(csv_path) as csv_file:
-            csv_reader = csv.reader(csv_file)
-            for row in csv_reader:
-                row[2], row[3] = float(row[2]), int(row[3])
-                ae_path = ae_root + '/' + row[0].split('.')[0] + '/' + row[1] + '.npy'
-                if row[2] >= min_ae_confidence:
-                    ae_list.append(ae_path)
-    return ae_list
-
-ae_list = get_ae_list(AE_ROOT, MIN_AE_CONFIDENCE)
-sys.stdout.write('Working with {0} AEs\n'.format(len(ae_list)))
-sys.stdout.flush()
-
-def get_original_list(data_root, max_original_images):
-    original_list = []
-    for cls_path in glob.glob(data_root + '/*'):
-        for cls_member in glob.glob(cls_path + '/*'):
-            original_list.append(cls_member)
-    random.shuffle(original_list)
-    if max_original_images is not None:
-        original_list = original_list[:max_original_images]
-    return(original_list)
-    
-original_list = get_original_list(DATA_ROOT, MAX_ORIGINAL_IMAGES)
-sys.stdout.write('Working with {0} original images\n'.format(len(original_list)))
-sys.stdout.flush()
-
-
-# In[3]:
-
-def original_loader(path):
-    img = adex.googlenet.load_image(transformer, path)
-    img = adex.data.grayvalue_image(img)
-    img = img[...,:-1,:-1] # FIXME remove this
-    img /= math.sqrt(np.sum(img**2))
-    return img
-
-def ae_loader(path):
-    img = np.load(path)
-    img = adex.data.grayvalue_image(img)
-    img = img[...,:-1,:-1] # FIXME remove this
-    img /= math.sqrt(np.sum(img**2))
-    return img
-
-def compute_spectrum(image_list, image_loader):
-    spectrum = None
-    
-    for idx, path in enumerate(image_list):
-        img = image_loader(path)
-
-        if spectrum is None:
-            spectrum = adex.data.get_spectrum(img)
-        else:
-            spectrum += adex.data.get_spectrum(img)
-        
-        # A bit of progress feedback every 1000 images
-        if idx % 1000 == 0:
-            sys.stdout.write('.')
-            sys.stdout.flush()
-    sys.stdout.write('\n')
-    sys.stdout.flush()
-    
-    spectrum /= len(image_list)
-    return spectrum
-
-if os.path.isfile(ORIGINAL_SPECTRUM_PATH):
-    sys.stdout.write('Loading original spectrum from {0}\n'.format(ORIGINAL_SPECTRUM_PATH))
-    original_spectrum = np.load(ORIGINAL_SPECTRUM_PATH)
-else:
-    sys.stdout.write('Computing original spectrum')
-    original_spectrum = compute_spectrum(original_list, original_loader)
-    if MAX_ORIGINAL_IMAGES is None:
-        np.save(ORIGINAL_SPECTRUM_PATH, original_spectrum)
-        sys.stdout.write('Saving original spectrum to {0}\n'.format(ORIGINAL_SPECTRUM_PATH))
-sys.stdout.flush()
-
-sys.stdout.write('Computing AE spectrum')
-ae_spectrum = compute_spectrum(ae_list, ae_loader)
-sys.stdout.write('\ndone.')
-sys.stdout.flush()
-
+original_spectrum = np.load(ORIG_SPECTRUM_PATH)
+ae_spectrum = np.load(AE_SPECTRUM_PATH)
 log_spectra_difference = np.log(original_spectrum) - np.log(ae_spectrum)
-
-
-# In[ ]:
 
 fig = ppt.figure(figsize=(16, 4))
 
@@ -141,10 +34,10 @@ ax = ppt.subplot(1, 3, 3)
 ppt.imshow(log_spectra_difference[0, 0], cmap='gray', interpolation='none')
 ppt.title('Difference of log spectra')
 
-fig.savefig(SAVE_PATH_PREFIX + 'spectra.png', bbox_inches='tight')
+fig.savefig(SAVE_PATH_PREFIX + '-spectra.png', bbox_inches='tight')
 
 
-# In[ ]:
+# In[3]:
 
 def activity_distribution(spectrum, range_bins, angle_bins):
     spectrum = spectrum.reshape(spectrum.shape[-2:])
@@ -194,7 +87,7 @@ ae_distance_distribution, ae_angle_distribution = activity_distribution(ae_spect
 diff_distance_distribution, diff_angle_distribution = activity_distribution(log_spectra_difference, distance_bins, angle_bins)
 
 
-# In[ ]:
+# In[4]:
 
 fig = ppt.figure(figsize=(16, 4))
 
@@ -216,7 +109,7 @@ ax.set_xscale('log')
 ppt.plot(diff_distance_distribution, color='#115EA6')
 ppt.title('Distance distribution (Difference of log spectra)')
 
-fig.savefig(SAVE_PATH_PREFIX + '-spectra-distance-{0}-bins.png'.format(distance_bins), bbox_inches='tight')
+fig.savefig(SAVE_PATH_PREFIX + '-distance-{0}-bins.png'.format(distance_bins), bbox_inches='tight')
 
 
 
@@ -243,5 +136,5 @@ ax = ppt.subplot(1, 3, 3)
 ppt.bar(np.arange(angle_bins), diff_angle_distribution, color='#115EA6')
 ppt.title('Angle distribution (Difference of log spectra)')
 
-fig.savefig(SAVE_PATH_PREFIX + '-spectra-angle-{0}-bins.png'.format(angle_bins), bbox_inches='tight')
+fig.savefig(SAVE_PATH_PREFIX + '-angle-{0}-bins.png'.format(angle_bins), bbox_inches='tight')
 
