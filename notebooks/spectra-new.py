@@ -184,7 +184,7 @@ ae_distance_distribution, ae_angle_distribution = activity_distribution(ae_spect
 diff_distance_distribution, diff_angle_distribution = activity_distribution(log_spectra_difference, distance_bins, angle_bins)
 
 
-# In[19]:
+# In[20]:
 
 fig = ppt.figure(figsize=(16, 4))
 
@@ -206,7 +206,7 @@ ax.set_xscale('log')
 ppt.plot(diff_distance_distribution, color='#115EA6')
 ppt.title('Distance distribution (Difference of log spectra)')
 
-fig.savefig(SAVE_PATH_PREFIX + 'spectra_distance.png', bbox_inches='tight')
+fig.savefig(SAVE_PATH_PREFIX + '-spectra-distance-{0}-bins.png'.format(distance_bins), bbox_inches='tight')
 
 
 
@@ -233,5 +233,5 @@ ax = ppt.subplot(1, 3, 3)
 ppt.bar(np.arange(angle_bins), diff_angle_distribution, color='#115EA6')
 ppt.title('Angle distribution (Difference of log spectra)')
 
-fig.savefig(SAVE_PATH_PREFIX + 'spectra_angle.png', bbox_inches='tight')
+fig.savefig(SAVE_PATH_PREFIX + '-spectra-angle-{0}-bins.png'.format(angle_bins), bbox_inches='tight')
 
