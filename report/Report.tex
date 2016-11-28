@@ -824,7 +824,11 @@ In order to gain insights into the nature and properties of adversarial examples
 
 % TODO almost all? Not just all?
 % FIXME What about COIL 100? Has it been added?
-Apart from parameters choices, the biggest determinants of the specifics of adversarial examples are the data set used to provide the starting points in the generation process and the models that are employed to provide the gradients required by the FGSM. In this thesis, almost all AEs are based on one of two datasets: \emph{GTSRB} \cite{gtsrb-description} and \emph{ImageNet} \cite{imagenet-large-scale-hierarchical-image-database}. The former is a collection of traffic signs taken from german roads at various points during approach and the latter is a general-purpose aggregate of online images with diverse classes. Both of these datasets are combined with a respective network. For GTSRB, a network based on \cite{multi-column-neural-network-gtsrb} was used to generate adversarial examples, while with ImageNet, the \emph{GoogLeNet} network from \cite{going-deeper-with-convolutions} was used. Both networks were trained on their respective data sets\footnote{But GoogLeNet due to both its size and the size of the data set were not trained from scratch, but the weights provided by the \emph{caffe} software were used instead}.
+Apart from parameters choices, the biggest determinants of the specifics of adversarial examples are the data set used to provide the starting points in the generation process and the models that are employed to provide the gradients required by the FGSM. In this thesis, almost all AEs are based on one of two datasets: \emph{GTSRB} \cite{gtsrb-description} and \emph{ImageNet} \cite{imagenet-large-scale-hierarchical-image-database}. The former is a collection of traffic signs taken from german roads at various points during approach and the latter is a general-purpose aggregate of online images with very diverse classes. Both of these datasets are combined with a respective network. For GTSRB, a network based on \cite{multi-column-neural-network-gtsrb} was used to generate adversarial examples, while with ImageNet, the \emph{GoogLeNet} network from \cite{going-deeper-with-convolutions} was used. Both networks were trained on their respective data sets\footnote{But GoogLeNet due to both its size and the size of the data set was not trained from scratch, but the weights provided by the \emph{caffe} software were used instead}.
+
+Either of these data sets have properties that make them interesting for AE research. GTSRB offers images with a high inherent difficulty, the object is offten occluded, blurry or contain a stark light-dark contrast due to shadows. They are also frequently overexposed, have an almost prohibitively weak contrast or are simply very small. All these properties mean that if a network is able to perform well on the test set, it is likely to have exceptional invariance properties, adressing the conflict between generalization and the existence of adversarial examples. ImageNet, on the other hand, has very clean, full-size images, but features a large number of classes, so the effect of initial class and target (adversarial) class choice can be extensively studied. There is also a lot of \emph{object} variation in ImageNet. While images of different physical traffic signs may vary due to the aforementioned effects, the object that is to be classified always looks almost identical, by design. ImageNet, by contrast, groups lots of visually distinct entities into the same classes. The effect of this is a different type of generalization than GTSRB provides.
+% TODO
+% Elaborate on this: GTSRB is good for AEs since the occluded, shadow-containing, blurry overexposed images of different aspect ratio make for a net that strongly generalizes. ImageNet, on the other hand, has very clean, full-size images, but has a lot of classes, and there is a lot of "proper" variation in the images for each class (not just shadows and blurr etc.)
 
 Although the specifics of AE generation vary between the two dataset-network pairs because the different storage layouts on disk necessitate different bookkeeping code, the overall procedure is the same and will now described before characteristics of each data set are discussed in sections \ref{sec:generation-large-sets:gtsrb} and \ref{sec:generation-large-sets:imagenet}. An algorithmic formulation is presented in algorithm \ref{alg:generate-ae-batches}.
 
@@ -998,7 +1002,7 @@ With these settings and the data prepared as stated above, training resulted in 
 		gtsrb-ae-0.9 & 0.9 \\
 		\hline
 	\end{tabular}
-	\caption{Generated AE batches and corresponding value of $c$}
+	\caption{Generated AE batches on GTSRB / GTSRB-Net}
 	\label{tab:gtsrb-ae-batches}
 \end{table}
 
@@ -1064,9 +1068,28 @@ ImageNet comprises RGB color images of varying size and very diverse aspect rati
 \end{figure}
 
 % TODO Is 27 layers deep (22 if pooling not counted)
-The network trained on this data set and used to generate adversarial examples from it is GoogLeNet, introduced in \cite{going-deeper-with-convolutions} as part of the \emph{Inception} architecture for CNNs. Even though the paper makes reasonable claims that the architecture uses available parameters very efficiently, it is still a bulky network with 27 layers\footnote{The paper mentions 22, not counting pooling layers since they are parameterless}. All layers use ReLU activation functions, except for the output, which uses a softmax function.
+The network trained on this data set and used to generate adversarial examples from it is GoogLeNet, introduced in \cite{going-deeper-with-convolutions} as part of the \emph{Inception} architecture for CNNs. Even though the paper makes reasonable claims that the architecture uses available parameters very efficiently, it is still a bulky network with 27 layers\footnote{The paper mentions 22, not counting pooling layers since they are parameterless}. All layers use ReLU activation functions, except for the output, which uses a softmax function. The weight initialization distribution is not specified\footnote{Although they did mention that an ensemble they constructed used the same initialization for all models} in \cite{going-deeper-with-convolutions}.
 
-% The weight initialization distribution is not mentioned\footnote{Though they did mention that an ensemble they constructed used the same initialization for all models} in \cite{going-deeper-with-convolutions}
+Training a network of this size on a sufficiently large portion of ImageNet was infeasible with the available hardware infrastructure and time budget. Fortunately, a suitable, already trained model is available from \cite{caffe-model-zoo}. This network accepts 3-channel RGB images with a resolution of $224 \times 224$ as input data. Weights were initialized according to \cite{glorot-understanding-deep-nn-training}. The model was trained without data augmentation for 60 epochs, achieving a top-1 accuracy of $68.7\%$.
+
+% TODO FIXME what about the ..._progress_... sets?
+Using this model, 3 batches of adversarial examples were generated from the ImageNet data set as per algorithm \ref{alg:generate-ae-batches}. The first one used a random subset of 50 classes for both the \emph{original\_class\_list} and \emph{target\_class\_list} so as to completely cross-generate AEs, at least on a small subset. Another batch used one randomly chosen class for the \emph{original\_class\_list} and used the entirety of ImageNet's 1000 classes as the \emph{target\_class\_list}, so an adversarial example was generated at least once for each class. It is important to understand that this implies only one AE per target class, all generated from the same class representative. This considerably weakens significance of any conclusions drawn, but was feasible with the resources at hand. Both of the aforementioned batches use a value of $c = 0.9$, which has proven to be reasonable on ImageNet in section \ref{sec:fundamental-properties}, and $500$ iterations. A third batch was created for the purpose of amplifying the properties of adversarial examples examined in the following sections, even at the cost of visual integrity. This used a value of $c = 3.0$, also with $500$ iterations on a 10 class subset for both original and target class lists. These batches are summarized and given a name in table \ref{tab:imagenet-ae-batches}
+
+\begin{table}[htp]
+	\centering
+	\begin{tabular}{|l|l|l|l|l|}
+	\hline
+		AE batch name & c & iterations & $\abs{\text{\emph{original\_class\_list}}}$ & $\abs{\text{\emph{target\_class\_list}}}$ \\
+		\hline
+		imagenet-ae-50 & 0.9 & 500 & 50 & 50 \\
+		imagenet-ae-1000 & 0.9 & 500 & 1 & 1000 \\
+		imagenet-ae-10-3.0 & 3.0 & 500 & 10 & 10 \\
+	\hline
+	\end{tabular}
+	\caption{Generated AE batches on ImageNet / GoogLeNet}
+	\label{tab:imagenet-ae-batches}
+\end{table}
+
 
 %%%%% Dataset:
 %% From when?
@@ -1079,13 +1102,11 @@ The network trained on this data set and used to generate adversarial examples f
 %% Unbalanced class frequencies?
 %% Border around content?, Bounding boxes?
 %%%%% Network:
-% Network parameters (layout, initialization, activation functions, number and size of filters)
-% Preprocessing, resizing, contrast normalization
-% Training parameters (loss, learn rate, decay, batch size, epoch count)
+%% Network parameters (layout, initialization, activation functions, number and size of filters)
+%% Preprocessing, resizing, contrast normalization
+%% Training parameters (loss, learn rate, decay, batch size, epoch count)
 
 % TODO
-% I didn't train googlenet myself, training described in \cite{going-deeper-with-convolutions}
-% Elaborate on this: GTSRB is good for AEs since the occluded, shadow-containing, blurry overexposed images of different aspect ratio make for a net that strongly generalizes. ImageNet, on the other hand, has very clean, full-size images, but has a lot of classes, and there is a lot of "proper" variation in the images for each class (not just shadows and blurr etc.)
 % Present a few AEs for both
 
 
