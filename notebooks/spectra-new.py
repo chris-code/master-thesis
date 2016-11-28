@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[12]:
+# In[1]:
 
 import matplotlib
 matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
@@ -11,6 +11,7 @@ import random
 import sys
 import glob
 import csv
+import os
 import numpy as np
 import matplotlib.pyplot as ppt
 get_ipython().magic(u'matplotlib inline')
@@ -21,12 +22,14 @@ import adex.googlenet
 
 AE_BATCH_NAME = 'imagenet-ae-50'
 MIN_AE_CONFIDENCE = 0.5
-MAX_ORIGINAL_IMAGES = 100 # May be None
+MAX_ORIGINAL_IMAGES = 1000 # May be None
 
 CAFFE_ROOT = '/home/chrisbot/Projects/caffe'
-DATA_ROOT = '/media/sf_Masterarbeit/data/ILSVRC2012_img_train'
-AE_ROOT = '/media/sf_Masterarbeit/data/ILSVRC2012_img_train_AE_50'
-SAVE_PATH_PREFIX = '/media/sf_Masterarbeit/master-thesis/report/images/spectra/{0}-{1}'.format(AE_BATCH_NAME, MIN_AE_CONFIDENCE)
+PROJECT_ROOT = '/media/sf_Masterarbeit'
+DATA_ROOT = PROJECT_ROOT + '/data/ILSVRC2012_img_train'
+AE_ROOT = PROJECT_ROOT + '/data/ILSVRC2012_img_train_AE_50'
+SAVE_PATH_PREFIX = PROJECT_ROOT + '/master-thesis/report/images/spectra/{0}-{1}'.format(AE_BATCH_NAME, MIN_AE_CONFIDENCE)
+ORIGINAL_SPECTRUM_PATH = PROJECT_ROOT + '/master-thesis/report/images/spectra/imagenet-spectrum.npy'
 
 BATCH_SIZE = 1
 net = adex.googlenet.load_model(CAFFE_ROOT, BATCH_SIZE)
@@ -103,8 +106,15 @@ def compute_spectrum(image_list, image_loader):
     spectrum /= len(image_list)
     return spectrum
 
-sys.stdout.write('Computing original spectrum')
-original_spectrum = compute_spectrum(original_list, original_loader)
+if os.path.isfile(ORIGINAL_SPECTRUM_PATH):
+    sys.stdout.write('Loading original spectrum from {0}\n'.format(ORIGINAL_SPECTRUM_PATH))
+    original_spectrum = np.load(ORIGINAL_SPECTRUM_PATH)
+else:
+    sys.stdout.write('Computing original spectrum')
+    original_spectrum = compute_spectrum(original_list, original_loader)
+    if MAX_ORIGINAL_IMAGES is None:
+        np.save(ORIGINAL_SPECTRUM_PATH, original_spectrum)
+        sys.stdout.write('Saving original spectrum to {0}\n'.format(ORIGINAL_SPECTRUM_PATH))
 sys.stdout.flush()
 
 sys.stdout.write('Computing AE spectrum')
@@ -115,7 +125,7 @@ sys.stdout.flush()
 log_spectra_difference = np.log(original_spectrum) - np.log(ae_spectrum)
 
 
-# In[14]:
+# In[ ]:
 
 fig = ppt.figure(figsize=(16, 4))
 
@@ -134,7 +144,7 @@ ppt.title('Difference of log spectra')
 fig.savefig(SAVE_PATH_PREFIX + 'spectra.png', bbox_inches='tight')
 
 
-# In[8]:
+# In[ ]:
 
 def activity_distribution(spectrum, range_bins, angle_bins):
     spectrum = spectrum.reshape(spectrum.shape[-2:])
@@ -184,7 +194,7 @@ ae_distance_distribution, ae_angle_distribution = activity_distribution(ae_spect
 diff_distance_distribution, diff_angle_distribution = activity_distribution(log_spectra_difference, distance_bins, angle_bins)
 
 
-# In[20]:
+# In[ ]:
 
 fig = ppt.figure(figsize=(16, 4))
 
