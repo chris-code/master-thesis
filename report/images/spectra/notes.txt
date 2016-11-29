@@ -1,3 +1,8 @@
-287 images in imagenet-ae-50 have a confidence		> 0.5
-179 images in imagenet-ae-50 have a confidence		> 0.8
- 56 images in imagenet-ae-10-3.0 have a confidence	> 0.9
+287 images in imagenet-ae-50 have a confidence		>= 0.5
+179 images in imagenet-ae-50 have a confidence		>= 0.8
+
+ 66 images in imagenet-ae-10-3.0 have a confidence	>= 0.5
+ 56 images in imagenet-ae-10-3.0 have a confidence	>= 0.9
+ 
+ 29 images in imagenet-ae-1000 have a confidence	>= 0.5
+ 11	images in imagenet-ae-1000 have a confidence	>= 0.9
