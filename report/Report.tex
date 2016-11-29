@@ -50,6 +50,7 @@
     \setlength\@fptop{0\p@}
 \makeatother
 
+\usepackage{amsmath}
 \begin{document}
 \thispagestyle{empty}
 
@@ -847,7 +848,7 @@ Although the specifics of AE generation vary between the two dataset-network pai
 
 The \emph{original\_class\_list} contains the classes from each of which a random class representative (\emph{cr}) should be picked. These class representatives will be transformed via iterative FGSM to each of the classes in the \emph{target\_class\_list}. For the GTSRB data set, the original and target class lists are identical and contain all $43$ classes, but for ImageNet this is infeasible because firstly it contains plethora of 1000 classes and secondly it uses the much larger GoogLeNet, so generating each individual adversarial example is much more computationally expensive. Hence, AE batches on ImageNet only use a subset of the available classes for \emph{original\_class\_list} and \emph{target\_class\_list}.
 
-One complication needs to be mentioned at this point. The actual iterative FGSM code used in algorithm \ref{alg:generate-ae-batches} deviates slightly from the description in algorithm \ref{alg:make-adversarial}. Specifically, it terminated after reaching $90\%$ confidence on the target class. This was intended to save computation time, but as was discovered later and is described below, the turnout for such good AEs is very low, and such high confidences are only achieved near the end of iterative FGSM (if at all). This also means that the condition for this termination was hardly ever fulfilled, and thus should have negligible impact, but it is mentioned here regardless for reproducibility reasons.
+One complication needs to be mentioned at this point. The actual iterative FGSM code used in algorithm \ref{alg:generate-ae-batches} deviates slightly from the description in algorithm \ref{alg:make-adversarial}. Specifically, it terminated after reaching $90\%$ confidence on the target class. This was intended to save computation time, but as was discovered later and is described below, the turnout for such good AEs is very low, and such high confidences are only achieved near the end of iterative FGSM (if at all). This also means that the condition for this termination was hardly ever fulfilled, and thus it should have negligible impact, but it is pointed out here regardless for reproducibility reasons.
 
 % TODO check Man vs Computer Benchmarking ML algorithms for traffic sign recognition.pdf to see if there is anything noteworthy to add about GTSRB
 \subsection{GTSRB and GTSRB-Net}
@@ -989,17 +990,17 @@ With these settings and the data prepared as stated above, training resulted in 
 % TODO are all of these batches used somewhere in this paper?
 \begin{table}[htp]
 	\centering
-	\begin{tabular}{|l|l|}
+	\begin{tabular}{|l|l|l|}
 		\hline
-		AE batch name & c \\
+		AE batch name & c & iterations \\
 		\hline
-		gtsrb-ae-0.005 & 0.005 \\
-		gtsrb-ae-0.025 & 0.025 \\
-		gtsrb-ae-0.037 & 0.037 \\
-		gtsrb-ae-0.05 & 0.05 \\
-		gtsrb-ae-0.1 & 0.1 \\
-		gtsrb-ae-0.5 & 0.5 \\
-		gtsrb-ae-0.9 & 0.9 \\
+		gtsrb-ae-0.005 & 0.005 & 500 \\
+		gtsrb-ae-0.025 & 0.025 & 500 \\
+		gtsrb-ae-0.037 & 0.037 & 500 \\
+		gtsrb-ae-0.05 & 0.05 & 500 \\
+		gtsrb-ae-0.1 & 0.1 & 500 \\
+		gtsrb-ae-0.5 & 0.5 & 500 \\
+		gtsrb-ae-0.9 & 0.9 & 500 \\
 		\hline
 	\end{tabular}
 	\caption{Generated AE batches on GTSRB / GTSRB-Net}
@@ -1073,17 +1074,18 @@ The network trained on this data set and used to generate adversarial examples f
 Training a network of this size on a sufficiently large portion of ImageNet was infeasible with the available hardware infrastructure and time budget. Fortunately, a suitable, already trained model is available from \cite{caffe-model-zoo}. This network accepts 3-channel RGB images with a resolution of $224 \times 224$ as input data. Weights were initialized according to \cite{glorot-understanding-deep-nn-training}. The model was trained without data augmentation for 60 epochs, achieving a top-1 accuracy of $68.7\%$.
 
 % TODO FIXME what about the ..._progress_... sets?
-Using this model, 3 batches of adversarial examples were generated from the ImageNet data set as per algorithm \ref{alg:generate-ae-batches}. The first one used a random subset of 50 classes for both the \emph{original\_class\_list} and \emph{target\_class\_list} so as to completely cross-generate AEs, at least on a small subset. Another batch used one randomly chosen class for the \emph{original\_class\_list} and used the entirety of ImageNet's 1000 classes as the \emph{target\_class\_list}, so an adversarial example was generated at least once for each class. It is important to understand that this implies only one AE per target class, all generated from the same class representative. This considerably weakens significance of any conclusions drawn, but was feasible with the resources at hand. Both of the aforementioned batches use a value of $c = 0.9$, which has proven to be reasonable on ImageNet in section \ref{sec:fundamental-properties}, and $500$ iterations. A third batch was created for the purpose of amplifying the properties of adversarial examples examined in the following sections, even at the cost of visual integrity. This used a value of $c = 3.0$, also with $500$ iterations on a 10 class subset for both original and target class lists. These batches are summarized and given a name in table \ref{tab:imagenet-ae-batches}
+% TODO About the 3.0 set: With only 100 AEs it is considerably smaller than the other two, but since each of those contributes to the goal of this set it is of comparable importance.
+Using this model, 3 batches of adversarial examples were generated from the ImageNet data set as per algorithm \ref{alg:generate-ae-batches}. The first one used a random subset of 50 classes for both the \emph{original\_class\_list} and \emph{target\_class\_list} so as to completely cross-generate AEs, at least on a small subset. Another batch used one randomly chosen class for the \emph{original\_class\_list} and used the entirety of ImageNet's 1000 classes as the \emph{target\_class\_list}, so an adversarial example was generated at least once for each class. It is important to understand that this implies only one AE per target class, all generated from the same class representative. This considerably weakens significance of any conclusions drawn, but was feasible with the resources at hand. Both of the aforementioned batches use a value of $c = 0.9$, which has proven to be reasonable on ImageNet in section \ref{sec:fundamental-properties}, and $500$ iterations. A third batch was created for the purpose of amplifying the properties of adversarial examples examined in the following sections, even at the cost of visual integrity. This used a value of $c = 3.0$, also with $500$ iterations on a 10 class subset for both original and target class lists. These batches are summarized and given a name in table \ref{tab:imagenet-ae-batches}.
 
 \begin{table}[htp]
 	\centering
-	\begin{tabular}{|l|l|l|l|l|}
+	\begin{tabular}{|l|l|l|l|l|l|}
 	\hline
-		AE batch name & c & iterations & $\abs{\text{\emph{original\_class\_list}}}$ & $\abs{\text{\emph{target\_class\_list}}}$ \\
+		AE batch name & c & iterations & $\abs{\text{\emph{original\_classes}}}$ & $\abs{\text{\emph{target\_classes}}}$ & number of AEs \\
 		\hline
-		imagenet-ae-50 & 0.9 & 500 & 50 & 50 \\
-		imagenet-ae-1000 & 0.9 & 500 & 1 & 1000 \\
-		imagenet-ae-10-3.0 & 3.0 & 500 & 10 & 10 \\
+		imagenet-ae-50 & 0.9 & 500 & 50 & 50 & 2500 \\
+		imagenet-ae-1000 & 0.9 & 500 & 1 & 1000 & 1000 \\
+		imagenet-ae-10-3.0 & 3.0 & 500 & 10 & 10 & 100 \\
 	\hline
 	\end{tabular}
 	\caption{Generated AE batches on ImageNet / GoogLeNet}
@@ -1107,13 +1109,82 @@ Using this model, 3 batches of adversarial examples were generated from the Imag
 %% Training parameters (loss, learn rate, decay, batch size, epoch count)
 
 % TODO
-% Present a few AEs for both
+% Present a few AEs for both GTSRB and ImageNet
+% Talk about how many of those actually turned out to be AEs. In general, show some nice statistics for them, like a cumulative distribution over the confidence etc.
 
 
 
-%\section{Spectra of adversarial examples}
+
+
+
+
+
+
+\section{Frequency spectra of adversarial examples}
+% TODO talk about Modelling the Power Spectra of Natural  Images: Statistics and Information.pdf
+% TODO talk about Amplitude Spectra of Natural Images.pdf
+There are several ways to make use of the AE batches generated in section \ref{sec:generation-large-sets}. One of them is to analyze the frequency spectra of the original images and the adversarial examples and compare them. Spectra often prove useful when processing or studying signals since they have mathematical properties that greatly simplify some operations\footnote{For instance when accelerating convolutions}, and offer a perspective on the data that is vastly different from the one in position space.
+
+% TODO HSV or LAB space instead of grayvalue
+First of all follows a description of the approach taken to compute the spectra, how the data was normalized and then further processed. Computations were performed on grayvalue variants of the images, the 3 color channels were additively combined to one channel\footnote{No weighting was performed, i.e. giving the red channel a preference over the others}. To avoid issues arising from different scaling of the data, all images were normalized to norm $1$ by scaling each element with the factor $d$ according to equation \eqref{eq:image-normalization}. This is equivalent to scaling the flattened vector containing the pixel values to a length of one, measured by the euclidian norm. As a final step, a 1 row or column wide strip was cropped where necessary to make image dimensions odd, allowing for point-wise symmetry in the spectra.
+
+\begin{align}
+	d &= \frac{1}{\displaystyle \sqrt{\sum_{i \in I}{i^2}}} \label{eq:image-normalization}
+\end{align}
+
+Based on this normalized data the spectra were computed via an unscaled\footnote{see \cite{numpy-fft} for details} two-dimensional FFT for each image, followed by taking the absolute value of the result. To get a combined spectrum for all images, a simple averaging operation was performed. This process was executed separately for the original data and the adversarial examples.
+
+% TODO FIXME do not use a 20.000 image subset, but the whole thing
+The first spectra to be inspected come from the imagenet-ae-50 data set. For the images shown in figure \ref{fig:imagenet-ae-50-spectra}, only those adversarial examples contributed to the AE spectrum which obtained a confidence of $50\%$ or higher. This way, it is certain that the network decision corresponds to the desired class\footnote{One could also have identified those AEs with confidences below $50\%$ which successfully trick the network at creation time without additional computational cost, but this overlooked at the time.}. There were 287 suitable AEs in the pool. The spectrum of the original ImageNet data was approximated by the spectrum of a 20.000 image subset.
+
+% TODO reduce space between images so they can be bigger
+% TODO break up into 3 subfigures
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=\textwidth]{images/spectra/imagenet-ae-50-minconfidence-0dot5-maxorig-20000-spectra.png}
+	\caption{Element-wise logarithm of the spectra of ImageNet and imagenet-ae-50, and the difference between them (adversarial - original)}
+	\label{fig:imagenet-ae-50-spectra}
+\end{figure}
+
+The original spectrum conforms with the observation that, at least in expectation, natural image spectra follow a $\frac{1}{f}$ pattern, where $f$ is the frequency\cite{relations-between-natural-image-statistics-and-cortical-cells}. The adversarial spectrum is considerably more noisy, owing to the smaller amount of data, but also seems to follow this general pattern. However, it seems like an area around the center axes that gets wider as the frequency increases exposes unusually high amplitudes. The visualization of the two image's difference makes this even more clear. Rather than the uncorrelated noise that would be expected, one can somewhat clearly discern wedges radiating out from the origin. These irregularities motivate the analysis below.
+
+% TODO maybe add pseudocode for this (or maybe describe the process in mode detail
+Going one step further than visual inspection, a known method for inspecting image spectra properties is to focus on the activity distribution w.r.t the frequency. To this end, the possible distances from the origin to the corners of the spectrum array were divided into $158$ equidistant bins, each containing a scalar number. Then, for each value in the spectrum, its distance was computed and the value was added to the appropriate bin. This corresponds to adding up the values of points on concentric circles around the origin, but each value is added exactly once. Obviously, some circles get more points allocated to them than others, so afterwards each bin was divided by the number of values that were assigned to it. This done for all 3 arrays shown in figure \ref{fig:imagenet-ae-50-spectra} and the result is plotted on a log-log scale in figure \ref{fig:imagenet-ae-50-frequency}.
+
+% TODO label axes
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=\textwidth]{images/spectra/imagenet-ae-50-minconfidence-0dot5-maxorig-20000-distance-158-bins.png}
+	\caption{Activity distribution in ImageNet and adversarial spectra, w.r.t frequency}
+	\label{fig:imagenet-ae-50-frequency}
+\end{figure}
+
+% TODO checking this constructive interference theory is good stuff for the conclusion
+The distributions for the individual spectra again mostly conform to the $\frac{1}{f}$ relationship, and no clear disparity is visible. The plot of the difference confirms that the differences are weak in amplitude, but it is interesting to notice that they don't appear to be indiscriminate. Rather, it seems that adversarial examples have systematically higher activation in the low frequency region and lower activation in the high-frequency region, except for a small spike near the end. This is a surprising result given that the visual inspection of extremely modified images appears to be high-frequent in nature (cf. figure \ref{fig:ae-panda-dresser-1dot8}). A possible explanation for this is that the low-frequency components are accumulations of many different directions and are thus not visibly noticeable, while the few high-frequency components use constructive interference to produce the strong observed noise patterns. A possible way to test this is to analyze the positions of the spots for correlations. If they are the result of constructive interference, they should be much more strongly correlated than random noise.
+
+The observation of outwards radiating wedges in figure \ref{fig:imagenet-ae-50-spectra} also suggests a second method of analysis. Rather than focusing on the distance to the origin, one might look for differences in the radial pattern. Thus, a procedure analogous to the one described above was performed, but instead of grouping the array elements by frequency, they were grouped by angle. 16 bins were used and similarly normalized by the number of values going into them. The result can be inspected in figure \ref{fig:imagenet-ae-50-angle}.
+
+% TODO label axes
+% TODO Use angles in radians as axis ticks
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=\textwidth]{images/spectra/imagenet-ae-50-minconfidence-0dot5-maxorig-20000-angle-16-bins.png}
+	\caption{Activity distribution in ImageNet and adversarial spectra, w.r.t angle}
+	\label{fig:imagenet-ae-50-angle}
+\end{figure}
+
+The original and adversarial plots are similar, though one might already see some of the more pronounced differences. The difference plot shows a fair amount of discontinuity along the angles. Bin angles were not specifically designed to not split the visible wedges between bins, but since they seem to be aligned with the coordinate axes this may have been avoided by chance (which is desirable since the goal is to inspect their significance).
+
+% TODO test if this is true and then incorporate it:
+% The spectra and the corresponding distance and radial distributions for imagenet-ae-1000 are similar and therefore not shown.
+% alternatively:
+% They are very noisy because only one start image.
+
 % What are spectra
-% How are they computed (in general, fft)
+%% How are they computed (in general, fft)
+%% I actually use the amplitude spectrum
+%% Describe image normalization
+% State the displayed images are the logarithms because visiblity.
 % Layout of frequency space
 % How do they normally look? Somewhat bell-shaped (feat. that paper)
 % How are they computed here (averaging)
@@ -1172,15 +1243,14 @@ Using this model, 3 batches of adversarial examples were generated from the Imag
 % Consistent variable names etc.
 % Maybe use "dot product" instead of "inner product"?
 % Replace can't, don't etc with proper language
-% URL in References where important
-% urlseen from .ref file doesn't show up i references
-% intoduction for every section
+% Make sure URL in References show up where important
+% Introduction for every section
 % Add [h!!!!!!] to a lot of figures
 % Remove [scale=...] and [width=...] specifications from figures where unnecessary
 
-% Plots how original and adversarial class evolve over time
 % AE by superposition
 % Is it possible to analyze the dependence of AE generation on data dimensionality by comparing GTSRB-Net and GoogleNet AEs?
+% Include paper in email
 
 % Source for CNN performance on image processing tasks
 % Alex Krizhevsky, Ilya Sutskever, and Geoff Hinton. Imagenet classification with deep convolutional neural networks. In Advances in Neural Information Processing Systems 25, pages 1106–1114, 2012
