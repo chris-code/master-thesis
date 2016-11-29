@@ -74,7 +74,7 @@ def get_ae_list_gtsrb(ae_root, min_ae_confidence):
             for row in csv_reader:
                 row[3], row[4] = float(row[3]), int(row[4])
                 ae_path = ae_root + '/' + row[0] + '_' + row[1].split('.')[0] + '/' + row[2] + '.npy'
-                if row[2] >= min_ae_confidence:
+                if row[3] >= min_ae_confidence:
                     ae_list.append(ae_path)
     return ae_list
 
