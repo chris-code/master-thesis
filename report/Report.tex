@@ -833,6 +833,7 @@ Either of these data sets have properties that make them interesting for AE rese
 
 Although the specifics of AE generation vary between the two dataset-network pairs, because the different storage layouts on disk necessitate different bookkeeping code, the overall procedure is the same and will now be described before characteristics of each data set are discussed in sections \ref{sec:generation-large-sets:gtsrb} and \ref{sec:generation-large-sets:imagenet}. An algorithmic formulation is presented in algorithm \ref{alg:generate-ae-batches}.
 
+% TODO state that this means that a class rep will be turned into the correct class (unless original and target are disjoint)
 \begin{algorithm}
 	\begin{algorithmic}
 			\ForAll{oc $\in$ original\_class\_list}
@@ -1281,22 +1282,45 @@ Lastly, the angular distribution will be analyzed. Figure \ref{fig:gtsrb-ae-0.02
 
 
 
-%\section{Class dependence of generation success}
+\section{Class dependence of generation success}
 % confusion matrix (see http://benchmark.ini.rub.de/?section=gtsrb&subsection=dataset for confusion matrix example}
-% Absolutely show confusion matrix for gtsrb, very interesting
-% Results of confusion matrix may imply that when taking only the spectra of AEs with a confidence higher than 0.5 or 0.9, some classes get heavily biased. It might make sense to stratify the selection.
+Section \ref{sec:fundamental-properties} revealed that the confidence a generated AE can attain is heavily influenced by the choice of target class. Transforming the panda into an acorn for instance was easy even with as few as 10 iterations, leading to a confidence of $86.17\%$ ($94.49\%$ with 100 iterations). All attempts of turning the panda into a dresser however, proved to be futile, unless one is willing to accept drastic, salient changes to the image. Manual sampling also revealed that the choice of source class had a significant impact, it seems that some classes are more easily turned into specific things than others.
 
+In an effort to make these observations more systematic and meaningful, the imagenet-ae-50 batch was inspected more closely. As described in section \ref{sec:generation-large-sets:imagenet}, it contains an AE for every pair of source and target class (where the source class is represented by a randomly chosen representative), for a ImageNet subset of 50 classes. This structure lends itself to a representation akin to a confusion matrix, as provided by figure \ref{fig:imagenet-ae-50-confusion-matrix}. It is crucial to keep in mind that its significance is strongly limited by having only one AE for each pair, and one source image per source class.
 
+\begin{figure}[htb]
+	\centering
+	\includegraphics[width=\textwidth]{images/confusion-matrices/imagenet-ae-50.png}
+	\caption{Confidence of GoogLeNet on imagenet-ae-50, broken down by source and target class. White indicates high confidence.}
+	\label{fig:imagenet-ae-50-confusion-matrix}
+\end{figure}
 
+Unsurprisingly, the diagonal is almost filled with high-confidence elements. It represents the attempts to turn an image into the correct class as designated by its true label. The ballpoint pen is a notable exception. The very low confidence value indicates that not only did the network fail to classify it correctly, it is also hard to change the image such that the network makes a correct prediction.
 
+A particularly noticeable feature of the map are the horizontal lines. Most pronounced are those corresponding to the source classes \emph{assault rifle}, \emph{monastery}, \emph{conch} and \emph{file}, but other rows expose a similar trend. They indicate that the corresponding source classes can be much more effectively turned into adversarial examples of a wide range of target classes than other source classes. As a consequence, the distribution of adversarial examples in input space seems to be skewed. There exist points, for example those represented by the assault rifle image, that are surrounded by AEs from a large number of classes, while the dresser image\footnote{refered to as a chiffonier in ImageNet} has no adversarial examples nearby\footnote{The dresser used as a class representative in imagenet-ae-50 was a different one from the one inspected in section \ref{sec:fundamental-properties}.}. Another implication of this structure is that the spectra computed in section \ref{sec:spectra} are biased towards certain classes, since only actually adversarial examples, i.e. those which convince the network, were used. If more data were available, the analysis might benefit from taking a stratified sample set from the available AEs.
 
+The reverse does not seem to apply. The confidence among the columns in figure \ref{fig:imagenet-ae-50-confusion-matrix} seems to be much more evenly distributed, albeit noisy. There is no class into which most other classes are readily transformed. There are, however 2 classes that appear to be particularly hard to mimic: the columns for the lorikeet and red-breasted merganser are almost entirely black. So, while some points in input space are surrounded by adversarial examples of most classes, which classes are missing does not seem to be random. 
 
+As indicated above, a major drawback of performing this analysis on the imagenet-ae-50 batch is the fact that each confidence value is only generated from one data point. Fortunately, a larger number of AE batches were created for GTSRB that all have the same source and target classes\footnote{Namely all classes in GTSRB.}. Most importantly, since the class representatives are chosen at random, they vary across the different batches. While the batches also share an iteration count of 500, their value for $c$ differs quite broadly. However, the results presented in section \ref{sec:fundamental-properties} give reason to believe that a larger/smaller value of $c$ does not induce systematic bias in favor or some source-target class pairs, but rather increases/decreases confidences uniformly. In other words, it might make trends like those in figure \ref{fig:imagenet-ae-50-confusion-matrix} less visible by adding entire sets of high or low confidence, but should not create new trends. A confusion-matrix like plot for a combination of the GTSRB batches is presented in figure \ref{fig:gtsrb-ae-multiple-confusion-matrix}.
 
+\begin{figure}[htb]
+	\centering
+	\includegraphics[width=0.8\textwidth]{images/confusion-matrices/gtsrb-ae-multiple-0005-0025-0037-005.png}
+	\caption{Confidence of GTSRB-Net on combined gtsrb-ae-\{0.005, 0.025, 0.037, 0.05\}, broken down by source and target class. White indicates high confidence.}
+	\label{fig:gtsrb-ae-multiple-confusion-matrix}
+\end{figure}
+
+With 4 AEs per element, this figure is a bit more significant than figure \ref{fig:imagenet-ae-50-confusion-matrix}. The observations made previously are found reaffirmed here. One can clearly see that some classes are successfully transformed, while others, like the two lowermost classes, resist change toward any other class. One caveat to be aware of here is that due to a difference in the $c$ parameter, the exact grayvalues are not readily interpretable. However, the overall structure that is visible still retains its meaning.
+
+% TODO show representatives of those classes that are easily / hardly transformed.
 
 
 %\section{Predicting the generation progress}
 
 %\section{Conclusion}
+% The confidence matrices should be made much more significant by using more than one AE for each pair
+% Something that might be explored in further work is who AEs generated from training data differ from those spawned from other sources
+% Results from section on confusion matrices might be used to more efficiently generate lots of AEs
 
 
 \begin{appendix}
@@ -1348,7 +1372,6 @@ Lastly, the angular distribution will be analyzed. Figure \ref{fig:gtsrb-ae-0.02
 % Is it possible to analyze the dependence of AE generation on data dimensionality by comparing GTSRB-Net and GoogleNet AEs?
 % Include paper that was sent to me in email
 % Talk about how creating AEs from TRAINING data is reasonable, and maybe even better because its probably harder. (Might also be easier though, since the network is somewhat 'aligned' with the training data. Wait... did i not already talk about this somewhere?
-% Something that might be explored in further work is who AEs generated from training data differ from those spawned from other sources
 
 % Source for CNN performance on image processing tasks
 % Alex Krizhevsky, Ilya Sutskever, and Geoff Hinton. Imagenet classification with deep convolutional neural networks. In Advances in Neural Information Processing Systems 25, pages 1106–1114, 2012
