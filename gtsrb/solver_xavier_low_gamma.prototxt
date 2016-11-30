@@ -21,6 +21,6 @@ test_initialization: false
 
 # Snapshots
 snapshot: 39209				# The snapshot interval in iterations.
-snapshot_prefix: "/home/chrisbot/Projects/master-thesis/gtsrb/snapshots/" # Relative to caffe utility invocation, not solver proto.
+snapshot_prefix: "/home/chrisbot/Projects/master-thesis/gtsrb/snapshots/low_gamma" # Relative to caffe utility invocation, not solver proto.
 snapshot_diff: false		# Snapshot the diff along with the weights.
 snapshot_after_train: true	# Save final snapshot at the end of training. This is the default.

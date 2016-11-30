@@ -31,14 +31,14 @@ import adex.core
 import adex.googlenet
 
 CAFFE_ROOT = '/home/chrisbot/Projects/caffe'
-DATA_ROOT = '/media/sf_Masterarbeit/data/ILSVRC2012_img_train_panda'
-OUTPUT_ROOT = '/media/sf_Masterarbeit/data/ILSVRC2012_img_train_panda_AE'
+DATA_ROOT = '/media/sf_Masterarbeit/data/ILSVRC2012_img_train'
+OUTPUT_ROOT = '/media/sf_Masterarbeit/data/ILSVRC2012_img_train_AE_10_3.0'
 BATCH_SIZE = 1
 
-AE_GRAD_COEFF = 0.9
+AE_GRAD_COEFF = 3.0
 CONFIDENCE_TARGET = 0.9
-MAX_ITERATIONS = 10
-CLASS_LIMIT = 5
+MAX_ITERATIONS = 500
+CLASS_LIMIT = 10
 
 
 # Next, we load the network, the labels and a transformer for i/o.

@@ -29,7 +29,7 @@ NORM_PERCENTILE = 98
 AE_GRAD_COEFF = 0.9
 ITERATIONS_RANGE = [25 * i for i in range(1, 20+1)] # TODO 25 * (1, 20+1)
 ITERATIONS_RANGE.insert(0, 10)
-sys.stdout.write('Iterations : {0}\n'.format(ITERATIONS_RANGE))
+sys.stdout.write('Iterations: {0}\n'.format(ITERATIONS_RANGE))
 sys.stdout.flush()
 
 image = caffe.io.load_image(IMAGE_PATH)
@@ -47,7 +47,7 @@ sys.stdout.flush()
 adversarial_images = []
 confidences = []
 for i in ITERATIONS_RANGE:
-    adversarial_image, _, iterations = adex.core.make_adversarial(net, image, target_label, AE_GRAD_COEFF,
+    adversarial_image, _, _ = adex.core.make_adversarial(net, image, target_label, AE_GRAD_COEFF,
                                                                                1.1, i)
     predictions, probabilities = adex.core.predict(net, adversarial_image)
     predictions, probabilities = predictions[0], probabilities[0]
@@ -57,7 +57,6 @@ for i in ITERATIONS_RANGE:
     
     adversarial_images.append(adversarial_image)
     confidences.append(confidence)
-    break
 
 
 # In[6]:

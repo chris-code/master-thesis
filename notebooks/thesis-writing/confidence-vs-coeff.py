@@ -57,7 +57,6 @@ for c in AE_GRAD_COEFF_RANGE:
     
     adversarial_images.append(adversarial_image)
     confidences.append(confidence)
-    break
 
 
 # In[4]:

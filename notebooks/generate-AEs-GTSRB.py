@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 import random
 import csv
@@ -13,15 +13,15 @@ import adex.core
 import adex.gtsrb
 
 #CAFFE_ROOT = '/home/chrisbot/Projects/caffe'
-LAYOUT_PATH = '/home/chrisbot/Projects/master-thesis/gtsrb/network_reprod_AE.prototxt'
+LAYOUT_PATH = '/home/chrisbot/Projects/master-thesis/gtsrb/network_reprod_deploy.prototxt'
 WEIGHT_PATH = '/home/chrisbot/Projects/master-thesis/gtsrb/snapshots/reprod_iter_548926.caffemodel'
 DATA_ROOT = '/media/sf_Masterarbeit/data/GTSRB_TRAIN_PREPROCESSED'
-OUTPUT_ROOT = '/media/sf_Masterarbeit/data/GTSRB_TRAIN_PREPROCESSED_AE'
+OUTPUT_ROOT = '/media/sf_Masterarbeit/data/GTSRB_TRAIN_PREPROCESSED_AE_0.037'
 BATCH_SIZE = 1
 
-AE_GRAD_COEFF = 0.9
+AE_GRAD_COEFF = 0.037
 CONFIDENCE_TARGET = 0.9
-MAX_ITERATIONS = 10
+MAX_ITERATIONS = 500
 
 net = adex.gtsrb.load_model(LAYOUT_PATH, WEIGHT_PATH, BATCH_SIZE)
 shape = list(net.blobs['data'].data.shape)
