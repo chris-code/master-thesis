@@ -1,0 +1,26 @@
+# General
+solver_mode: CPU
+type: "SGD"
+net: "/local/mielecqs/master-thesis/coil-100/network_small.prototxt"
+
+max_iter: 75600
+
+# Learning rate
+base_lr: 0.01
+lr_policy: "exp"
+gamma: 0.99997
+
+# Output
+display: 100
+average_loss: 100
+
+# Network testing
+test_iter: 1000
+test_interval: 4000
+test_initialization: false
+
+# Snapshots
+snapshot: 5400				# The snapshot interval in iterations.
+snapshot_prefix: "/local/mielecqs/master-thesis/coil-100/snapshots/small" # Relative to caffe utility invocation, not solver proto.
+snapshot_diff: false		# Snapshot the diff along with the weights.
+snapshot_after_train: true	# Save final snapshot at the end of training. This is the default.
