@@ -1,0 +1,145 @@
+name: "COILNet"
+force_backward: true
+layer {
+	name: "coil100"
+	type: "Input"
+	top: "data"
+	input_param {
+		shape: {
+			dim: 10 dim: 3 dim: 128 dim: 128
+		}
+	}
+}
+
+layer {
+	name: "conv1"
+	type: "Convolution"
+	bottom: "data"
+	top: "conv1"
+	param {
+		lr_mult: 1
+	}
+	convolution_param {
+		num_output: 32
+		kernel_size: 7
+		stride: 1
+		bias_term: false
+		weight_filler {
+			type: "xavier"
+		}
+	}
+}
+layer {
+	name: "act1"
+	type: "ReLU"
+	bottom: "conv1"
+	top: "act1"
+}
+layer {
+	name: "pool1"
+	type: "Pooling"
+	bottom: "act1"
+	top: "pool1"
+	pooling_param {
+		pool: MAX
+		kernel_size: 2
+		stride: 2
+	}
+}
+
+layer {
+	name: "conv2"
+	type: "Convolution"
+	bottom: "pool1"
+	top: "conv2"
+	param {
+		lr_mult: 1
+	}
+	convolution_param {
+		num_output: 48
+		kernel_size: 4
+		stride: 1
+		bias_term: false
+		weight_filler {
+			type: "xavier"
+		}
+	}
+}
+layer {
+	name: "act2"
+	type: "ReLU"
+	bottom: "conv2"
+	top: "act2"
+}
+layer {
+	name: "pool2"
+	type: "Pooling"
+	bottom: "act2"
+	top: "pool2"
+	pooling_param {
+		pool: MAX
+		kernel_size: 2
+		stride: 2
+	}
+}
+
+layer {
+	name: "ip1"
+	type: "InnerProduct"
+	bottom: "pool2"
+	top: "ip1"
+	param {
+		lr_mult: 1
+	}
+	param {
+		lr_mult: 2
+	}
+	inner_product_param {
+		num_output: 200
+		bias_term: true
+		weight_filler {
+			type: "xavier"
+		}
+		bias_filler {
+			type: "constant"
+			value: 0
+		}
+	}
+}
+layer {
+	name: "act3"
+	type: "ReLU"
+	bottom: "ip1"
+	top: "act3"
+}
+
+layer {
+	name: "ip2"
+	type: "InnerProduct"
+	bottom: "act3"
+	top: "ip2"
+	param {
+		lr_mult: 1
+	}
+	param {
+		lr_mult: 2
+	}
+	inner_product_param {
+		num_output: 100
+		bias_term: true
+		weight_filler {
+			type: "xavier"
+		}
+		bias_filler {
+			type: "constant"
+			value: 0
+		}
+	}
+}
+
+layer {
+	name: "prob"
+	type: "Softmax"
+	bottom: "ip2"
+	top: "prob"
+}
