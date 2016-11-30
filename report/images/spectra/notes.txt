@@ -1,9 +1,14 @@
-287 images in imagenet-ae-50 have a confidence		>= 0.5
-179 images in imagenet-ae-50 have a confidence		>= 0.8
+Dataset				Min confidence	AEs
+imagenet-ae-50		0.5				287
+imagenet-ae-50		0.8				179
 
- 66 images in imagenet-ae-10-3.0 have a confidence	>= 0.5
- 56 images in imagenet-ae-10-3.0 have a confidence	>= 0.9
- 
- 29 images in imagenet-ae-1000 have a confidence	>= 0.5
- 11	images in imagenet-ae-1000 have a confidence	>= 0.9
+imagenet-ae-1000	0.5				29
+imagenet-ae-1000	0.9				11
 
+imagenet-ae-10-3.0	0.5				66
+imagenet-ae-10-3.0	0.9				56
+
+gtsrb-ae-0.1		0.5				1236
+gtsrb-ae-0.05		0.5				412
+gtsrb-ae-0.037		0.5				371
+gtsrb-ae-0.025		0.5				136
