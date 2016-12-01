@@ -15,16 +15,16 @@ import adex.coil
 
 AE_GRAD_COEFF = 0.1
 CONFIDENCE_TARGET = 0.9
-MAX_ITERATIONS = 250
-ORIG_CLASS_LIMIT = 50
-TARGET_CLASS_LIMIT = 50
+MAX_ITERATIONS = 10
+ORIG_CLASS_LIMIT = 10
+TARGET_CLASS_LIMIT = 10
 
 #CAFFE_ROOT = '/home/chrisbot/Projects/caffe'
-LAYOUT_PATH = '/media/sf_Masterarbeit/master-thesis/coil-100/network_normal_deploy.prototxt'
-WEIGHT_PATH = '/media/sf_Masterarbeit/master-thesis/coil-100/snapshots/normal_iter_75600.caffemodel'
+LAYOUT_PATH = '/media/sf_Masterarbeit/master-thesis/coil-100/network_small_deploy.prototxt'
+WEIGHT_PATH = '/media/sf_Masterarbeit/master-thesis/coil-100/snapshots/small_iter_75600.caffemodel'
 #DATA_ROOT = '/media/sf_Masterarbeit/data/COIL100'
 ORIGINAL_LIST_PATH = '/media/sf_Masterarbeit/data/COIL100/train_images_labeled.txt'
-OUTPUT_ROOT = '/media/sf_Masterarbeit/data/COIL100_fullres_AE_{0}'.format(AE_GRAD_COEFF)
+OUTPUT_ROOT = '/media/sf_Masterarbeit/data/COIL100_halfres_AE_{0}'.format(AE_GRAD_COEFF)
 BATCH_SIZE = 1
 
 net = adex.coil.load_model(LAYOUT_PATH, WEIGHT_PATH, BATCH_SIZE)
@@ -34,6 +34,9 @@ net.blobs['data'].reshape(*shape)
 net.blobs['prob'].reshape(BATCH_SIZE, )
 net.reshape()
 transformer = adex.coil.build_transformer(net)
+
+sys.stdout.write('AE_GRAD_COEFF = {0}\nMAX_ITERATIONS = {1}\n'.format(AE_GRAD_COEFF, MAX_ITERATIONS))
+sys.stdout.flush()
 
 
 # In[2]:
@@ -46,7 +49,7 @@ def get_image_dict(path):
             line = line.strip()
             img_class = line.split()[-1].strip()
             img_path = line[:-len(img_class)].strip()
-            img_class = int(img_class) - 1
+            img_class = int(img_class)# - 1 # TODO -1 needed?
             img_instance = img_path[:-len(img_path.split('.')[-1]) - 1] # cut extension irrespective of its length
             img_instance = img_instance.split('/')[-1]
             
