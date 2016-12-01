@@ -18,8 +18,7 @@ for directory in glob.glob(IMAGENET_PATH + '/*'):
 	class_id = adex.googlenet.get_label_from_class_name(imagenet_labels, imagenet_class)
 
 	for image_path in glob.glob(directory + '/*'):
-		relative_path = image_path[len(IMAGENET_PATH):]
-		image_list.append((relative_path, class_id))
+		image_list.append((image_path, class_id))
 
 with open(OUTPUT_PATH, 'w') as outfile:
 	for image_path, class_id in image_list:
