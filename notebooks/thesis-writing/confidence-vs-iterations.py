@@ -27,7 +27,7 @@ TARGET_CLASS_NAME = ('n12267677', 'acorn')
 
 NORM_PERCENTILE = 98
 AE_GRAD_COEFF = 0.9
-ITERATIONS_RANGE = [25 * i for i in range(1, 20+1)] # TODO 25 * (1, 20+1)
+ITERATIONS_RANGE = [25 * i for i in range(1, 20+1)]
 ITERATIONS_RANGE.insert(0, 10)
 sys.stdout.write('Iterations: {0}\n'.format(ITERATIONS_RANGE))
 sys.stdout.flush()
@@ -59,7 +59,7 @@ for i in ITERATIONS_RANGE:
     confidences.append(confidence)
 
 
-# In[6]:
+# In[4]:
 
 sys.stdout.write('# Iterations\tConfidence\n')
 for i, c in zip(ITERATIONS_RANGE, confidences):

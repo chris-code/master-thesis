@@ -2,9 +2,9 @@ import subprocess
 import numpy as np
 import caffe
 
-def load_model(caffe_root, batch_size):
-    net = caffe.Net(caffe_root + '/models/bvlc_googlenet/deploy.prototxt',
-                    caffe_root + '/models/bvlc_googlenet/bvlc_googlenet.caffemodel',
+def load_model(layout_path, weight_path, batch_size):
+    net = caffe.Net(layout_path,
+                    weight_path,
                     caffe.TEST)
     shape = list(net.blobs['data'].data.shape)
     shape[0] = batch_size
