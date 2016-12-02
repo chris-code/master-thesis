@@ -132,7 +132,7 @@ In the area of machine learning, artificial neural networks are some of the most
 \begin{figure}[h!tb]
 	\centering
 	\includegraphics[width=0.5\textwidth]{images/biological_neuron.png}
-	\caption{Schematic of a biological neuron, taken from \cite{biological-neuron-schematic}}
+	\caption[Biological neuron]{Schematic of a biological neuron, taken from \cite{biological-neuron-schematic}}
 	\label{fig:biological-neuron-schematic}
 \end{figure}
 
@@ -144,7 +144,7 @@ An artificial neuron as used in an ANN mimics this process, but in a greatly sim
 \begin{figure}[h!tb]
 	\centering
 	\includegraphics[width=0.45\textwidth]{images/artificial_neuron.png}
-	\caption{Schematic of an artificial neuron}
+	\caption[Artificial neuron]{Schematic of an artificial neuron}
 	\label{fig:artificial-neuron-schematic}
 \end{figure}
 
@@ -160,7 +160,7 @@ Take note of the fact that the very first step performed on the input is essenti
 \begin{figure}[h!tb]
 	\centering
 	\includegraphics[width=0.6\textwidth]{images/activation_functions.png}
-	\caption{Logistic sigmoidal, hyperbolic tangent and ReLU activation functions}
+	\caption[Activation functions]{Logistic sigmoidal, hyperbolic tangent and ReLU activation functions}
 	\label{fig:activation-functions}
 \end{figure}
 
@@ -217,7 +217,7 @@ The goal of neural network training is usually to minimize the loss function (al
 \begin{figure}[h!tb]
 	\centering
 	\includegraphics[width=0.7\textwidth]{images/gradient_descent.png}
-	\caption{Illustration of the gradient descent method}
+	\caption[Gradient descent method]{Illustration of the gradient descent method}
 	\label{fig:gradient-descent}
 \end{figure}
 
@@ -242,7 +242,7 @@ A special kind of ANN that has proven to be particularly effective on image data
 \begin{figure}[h!tb]
 	\centering
 	\includegraphics[width=0.8\textwidth]{images/convolution_layer.png}
-	\caption{Schematic of a convolutoinal layer's functionality}
+	\caption[Functionality of convolutional layers]{Schematic of a convolutional layer's functionality}
 	\label{fig:convolutional-layer}
 \end{figure}
 
@@ -257,7 +257,7 @@ The convolutional layers of the CNNs used in this thesis and in practice are sli
 \begin{figure}[h!tb]
 	\centering
 	\includegraphics[scale=1.00]{images/convolution_layer_maps.png}
-	\caption{Schematic of a convolutional layer with multiple input and output maps}
+	\caption[Input and output maps in convolutional layers]{Schematic of a convolutional layer with multiple input and output maps}
 	\label{fig:convolutional-layer-maps}
 \end{figure}
 
@@ -269,7 +269,7 @@ The parsimony with free parameters required by a convolutional layer to produce 
 \begin{figure}[h!tb]
 	\centering
 	\includegraphics[scale=1.00]{images/pooling_layer.png}
-	\caption{Schematic of a pooling layer downsizing an input map}
+	\caption[Pooling layer functionality]{Schematic of a pooling layer downsizing an input map}
 	\label{fig:pooling-layer}
 \end{figure}
 
@@ -310,7 +310,7 @@ However, some discoveries have called this ability under scrutiny. A recent pape
 \begin{figure}[h!tb]
 \centering
 	\includegraphics[width=\textwidth]{images/intruiging_properties_ae.png}
-	\caption{Original image (left) and adversarial example (right, classified as \emph{ostrich, Struthio
+	\caption[Adversarial example from \cite{intriguing-properties-of-neural-networks}]{Original image (left) and adversarial example (right, classified as \emph{ostrich, Struthio
 camelus}) with magnified difference in the middle, as presented in \cite{intriguing-properties-of-neural-networks}}
 	\label{fig:intriguing-properties-ae}
 \end{figure}
@@ -345,7 +345,7 @@ Using the gradient of $J$ w.r.t. $x$ is easily motivated: If one choses an untru
 \begin{figure}[h!tb]
 	\centering
 	\includegraphics[width=\textwidth]{images/harnessing_ae.png}
-	\caption{Original image (left) and adversarial example (right, classified as \emph{gibbon} with $99.3\%$ confidence) with magnified perturbation in the middle, as presented in \cite{explaining-and-harnessing-adversarial-examples}}
+	\caption[Adversarial example created via FGSM, from \cite{explaining-and-harnessing-adversarial-examples}]{Original image (left) and adversarial example (right, classified as \emph{gibbon} with $99.3\%$ confidence) with magnified perturbation in the middle, as presented in \cite{explaining-and-harnessing-adversarial-examples}}
 	\label{fig:harnessing-ae}
 \end{figure}
 
@@ -448,7 +448,7 @@ Since adversarial examples are able to generalize across both different hyperpar
         \caption{Space as transformed by the network.}
         \label{fig:network-homeomorphism-end}
     \end{subfigure}
-    \caption{Illustration of a homeomorphic transformation of the input space in a binary classification task Blue and red areas indicate the data distribution and the black line represents the decision boundary. Images taken from \cite{neural-network-homeomorphics-transformation}}
+    \caption[Network function as homeomorphic transformation of input space]{Illustration of a homeomorphic transformation of the input space in a binary classification task. Blue and red areas indicate the data distribution and the black line represents the decision boundary. Images taken from \cite{neural-network-homeomorphics-transformation}}
     \label{fig:network-homeomorphism}
 \end{figure}
 
@@ -538,7 +538,7 @@ With the method presented in section \ref{sec:iterative-fgsm}, it is possible to
         \caption{Adversarial example. Top prediction: \emph{acorn}, 86.17\% confidence \\}
         \label{fig:ae-example-ae}
     \end{subfigure}
-    \caption{An image of a panda and its adversarial form. The latter was generated with $c = 0.9$ and 10 iterations on ImageNet/GoogLeNet}
+    \caption[Adversarial example of a panda as an acorn, generated with iterative FGSM]{An image of a panda and its adversarial form. The latter was generated with $c = 0.9$ and 10 iterations on ImageNet/GoogLeNet}
     \label{fig:ae-example}
 \end{figure}
 
@@ -562,7 +562,7 @@ Even though no visible changes are apparent, the right image is clearly not iden
         \caption{Sign of the gradient in the first iteration as used by iterative FGSM. Scaled by the 98th percentile to scale to visible range}
         \label{fig:ae-difference-grad}
     \end{subfigure}
-    \caption{Illustration of the deviation between the images in figure \ref{fig:ae-example}.}
+    \caption[Difference between original and adversarial example]{Illustration of the deviation between the images in figure \ref{fig:ae-example}.}
     \label{fig:ae-difference}
 \end{figure}
 
@@ -1343,8 +1343,23 @@ Besides the examples examined above, it is advisable to quantify the error in th
 
 
 
-%\section{Conclusion}
-% The confidence matrices should be made much more significant by using more than one AE for each pair
+\section{Conclusion}
+Machine learning techniques offer a lot of opportunities to improve our lives and relieve humans of dull labor. They are becoming increasingly popular, are in our phones, recognize faces in photos in social networks and will soon drive our cars for us. Deep CNNs in particular have been exceedingly successful on image related tasks, sometimes even beating humans. But despite their robustness and performance on ever more challenging tasks, adversarial examples expose a considerable gap between the reality of modern machine learning techniques and the capabilities expected of them.
+
+Even though CNNs supposedly abstract away from minute specifics in input images, thereby attaining great generalization and invariance properties, there exists images with imperceptible changes from correctly classified ones that elicit wrongful high-confidence predictions. These adversarial examples demonstrate unexpected and undesirable traits of these models. They can be attributed to their linear nature and don't require assumptions on the nonlinearity of the network. Instead, the size of the input data is key, where a high dimensionality significantly simplifies the process of generating adversarial examples.
+
+Adversarial examples can be efficiently generated via iterative FGSM. Performing a gradient descent on the input space can notably improve network confidence on the adversarial class at the expense computation time, but is still feasible, especially since the first few iterations added are by far the most valuable. More iterations can improve the adversarial properties of the resulting image, but only up to a point. If the distance traveled in input space is limited, confidence may max out before reaching $100\%$, regardless of iteration count. Allowing longer distances input space has always worked to convince the network of any desired target class, but images can become visibly adulterated. Regardless, they uncontroversially remain representatives or their source class, just with visible noise-like patterns. The changes in the source image tend to focus on shape-defining features of the contained object. Whether or not a correlation with spatial features of the target class exists remains unclear. In the middle of iterative FGSM the image can cross an indeterminate stage where neither source nor target confidence are greater than those of unrelated classes.
+
+Comparing the spectra of the original data sets and corresponding AEs generated from them revealed discernible differences between the two. One can inspect the distribution of amplitudes with respect to the frequency and orientation, but the former appears to yield more reliable results. In either case, the observed characteristics seem to be dependent on the data set. An investigation involving more networks and data sets could shed light onto this relation.
+
+A noteworthy observation is the inhomogeneity in cross-class conversion compatibility. Even though it seems possible to convert a representative image of any class into any other class by using a sufficiently large step size, conspicuous differences occur when using a limited step size to preserve the image's visual integrity. In that case, select source classes are much more readily transformed to a majority of the possible target classes with high confidence than others. There is a similar effect regarding the target class, some classes are much harder to mimic than others, but the effect is weaker than the one regarding the source class. Another interesting result is that some misclassified original, not-yet-modified images also can't be transformed such that the network predicts the correct class.
+
+An attempt was made to improve the efficiency of adversarial example generation by predicting the final confidence. Fitting a function to the confidence progress has proven to be hard because the initial part of the confidence curve contains little meaningful information.
+
+Adversarial examples also exist outside the domain of images, basically any sufficiently high-dimensional input data space could contain adversarial examples. Humans are very good at inspecting images and noticing visual differences and oddities, so it is reasonable to approach the topic in terms of image classification problems. nonetheless, interesting insights probably await by analyzing adversarial examples outside the image realm. Adversarial examples serve as a reminder that sometimes trying to break a system is a great way to understand how it works, and can suggest ways to further improve it.
+
+% TODO
+% Possibility AEs will always exist because homeomorphisms
 % Something that might be explored in further work is who AEs generated from training data differ from those spawned from other sources
 % Results from section on confusion matrices might be used to more efficiently generate lots of AEs
 % Can this AE stuff be done for regression as well?
@@ -1365,24 +1380,26 @@ Besides the examples examined above, it is advisable to quantify the error in th
 	\label{sec:visualizing-diff}
 	At various points in the thesis, the difference between an original image taken from a dataset and an adversarial example generated from it are compared. Sometimes this is done by showing the element-wise difference between the two. This, however, poses two challanges: Because the differences are usually tiny, they need to be scaled to visible range, and since we are talking about a difference, negative values also exist and carry meaning. A procedure to produce difference pictures while preserving most of the meaningful information is shown in algorithm \ref{alg:process-difference}.
 	
-	\begin{algorithm}
-		\begin{algorithmic}
-			\Function{ProcessDifference}{original, adversarial, c, p}
-				\State $\text{diff} \gets \frac{255}{c} \cdot \braces{\text{adversarial} - \text{original}}$
-				\State posDiff, negDiff $\gets$ diff, $- \text{diff}$
-				\State
-				\State Set all negative values in posDiff, negDiff to 0
-				\State Discard the p-Percentile from posDiff, negDiff
-				\State
-				\State \Return posDiff, negDiff
-			\EndFunction
-		\end{algorithmic}
-		\caption{Compute displayable differences between original and adversarial image}
-		\label{alg:process-difference}
-	\end{algorithm}
+\begin{algorithm}
+	\begin{algorithmic}
+		\Function{ProcessDifference}{original, adversarial, c, p}
+			\State $\text{diff} \gets \frac{255}{c} \cdot \braces{\text{adversarial} - \text{original}}$
+			\State posDiff, negDiff $\gets$ diff, $- \text{diff}$
+			\State
+			\State Set all negative values in posDiff, negDiff to 0
+			\State Discard the p-Percentile from posDiff, negDiff
+			\State
+			\State \Return posDiff, negDiff
+		\EndFunction
+	\end{algorithmic}
+	\caption{Compute displayable differences between original and adversarial image}
+	\label{alg:process-difference}
+\end{algorithm}
 	
 	Here, $c$ is the paramteter of the same name used in generating the AE. In words, the procedure scales the difference to visible range, splits it into a positive and a negative part and discards all values below the p-Percentile to increase lucidity (default $p = 98$). This yields two images, one that shows the changes in the positive direction and one that does the same for the negative direction. Most of the time, not a lot of insight is gained from inspecting both images, so to save space, unless both are shown or otherwise noted, only the positive part will be included, indicating where values have been \emph{added}.
 \end{appendix}
+
+\listoffigures
 
 \bibliographystyle{alpha}
 \bibliography{ref,image-ref}
@@ -1410,6 +1427,7 @@ Besides the examples examined above, it is advisable to quantify the error in th
 % Rename aes_old folder to aes
 % Spell checking
 % Rename "original" to source
+% Fix undefined references
 
 % AE by superposition
 % Is it possible to analyze the dependence of AE generation on data dimensionality by comparing GTSRB-Net and GoogleNet AEs?
