@@ -752,6 +752,7 @@ Here, one can clearly see the visual artifacts that arose from modification of t
 %Since figure \ref{fig:ae-panda-dresser-1dot8} revealed that the changes made by FGSM seem to be concentrated at one or very few regions, it is worth investigating whether that pattern holds for other combinations of original and target class. For the purpose of visual inspection,
 
 \subsection{Iterative properties of the transformation progress}
+\label{subsec:iterative-properties}
 Even though iterative FGSM utilizes the same fundamental idea for generating adversarial examples as its non-iterative forerunner, it constitutes a change of paradigm in the algorithm. It is therefore advisable to examine the properties of the iterative nature of this new variant in more detail. Two facets of this nature have already been inspected in previous parts of this section: The relationship between the changes in the adversarial image and the first gradient, and how the final confidence of the network depends on the number of steps under a fixed value for $c$. One thing not yet analyzed is the development of the CNN's confidence over the course of these steps. Hence, two plots for $10$ and $100$ iterations respectively are provided in figure \ref{fig:confidence-evolution}.
 
 % TODO 300 iterations
@@ -989,29 +990,27 @@ Training of GTSRB-Net was done with a stochastic gradient descent, using a batch
 % TODO FIXME realy 500 iterations?
 % TODO mention how many AEs are in each set (43^2 = 1849)
 % TODO state that the AEs are based off of the preprocessed (contrast normalized) images
-With these settings and the data prepared as stated above, training resulted in an optimized model that achieves a top-1 accuracy of $97.75\%$ and a top-3 accuracy of $99.375\%$ on the test set after the last epoch. Based on this model, several sets of adversarial examples were created in accordance with algorithm \ref{alg:generate-ae-batches}. All $43$ classes were in the \emph{original} and \emph{target} class lists, and an iteration count of 500 was used for each of those sets, so the only variable parameter was the adaption strength coefficient $c$. All used values for $c$ and corresponding AE batch names are provided in table \ref{tab:gtsrb-ae-batches}.
+With these settings and the data prepared as stated above, training resulted in an optimized model that achieves a top-1 accuracy of $97.75\%$ and a top-3 accuracy of $99.375\%$ on the test set after the last epoch. Based on this model and the preprocessed GTSRB training data, several sets of adversarial examples were created in accordance with algorithm \ref{alg:generate-ae-batches}. All $43$ classes were in the \emph{original} and \emph{target} class lists, and an iteration count of 500 was used for each of those sets, so the only variable parameter was the adaption strength coefficient $c$. All used values for $c$ and corresponding AE batch names are provided in table \ref{tab:gtsrb-ae-batches}.
 
 % TODO are all of these batches used somewhere in this paper?
 \begin{table}[htb]
 	\centering
-	\begin{tabular}{|l|l|l|}
+	\begin{tabular}{|l|l|l|l|l|l|}
 		\hline
-		AE batch name & c & iterations \\
+		AE batch name & c & iterations & $\abs{\text{\emph{original\_classes}}}$ & $\abs{\text{\emph{target\_classes}}}$ & number of AEs \\
 		\hline
-		gtsrb-ae-0.005 & 0.005 & 500 \\
-		gtsrb-ae-0.025 & 0.025 & 500 \\
-		gtsrb-ae-0.037 & 0.037 & 500 \\
-		gtsrb-ae-0.05 & 0.05 & 500 \\
-		gtsrb-ae-0.1 & 0.1 & 500 \\
-		gtsrb-ae-0.5 & 0.5 & 500 \\
-		gtsrb-ae-0.9 & 0.9 & 500 \\
+		gtsrb-ae-0.005 & 0.005 & 500 & 43 & 43 & 1849 \\
+		gtsrb-ae-0.025 & 0.025 & 500 & 43 & 43 & 1849 \\
+		gtsrb-ae-0.037 & 0.037 & 500 & 43 & 43 & 1849 \\
+		gtsrb-ae-0.05 & 0.05 & 500 & 43 & 43 & 1849 \\
+		gtsrb-ae-0.1 & 0.1 & 500 & 43 & 43 & 1849 \\
+		gtsrb-ae-0.5 & 0.5 & 500 & 43 & 43 & 1849 \\
+		gtsrb-ae-0.9 & 0.9 & 500 & 43 & 43 & 1849 \\
 		\hline
 	\end{tabular}
 	\caption{Generated AE batches on GTSRB / GTSRB-Net}
 	\label{tab:gtsrb-ae-batches}
 \end{table}
-
-% TODO FIXME mention that AEs were generated based on the preprocessed training data part of GTSRB
 
 \subsection{ImageNet and GoogLeNet}
 \label{sec:generation-large-sets:imagenet}
@@ -1288,7 +1287,7 @@ Section \ref{sec:fundamental-properties} revealed that the confidence a generate
 
 In an effort to make these observations more systematic and meaningful, the imagenet-ae-50 batch was inspected more closely. As described in section \ref{sec:generation-large-sets:imagenet}, it contains an AE for every pair of source and target class (where the source class is represented by a randomly chosen representative), for a ImageNet subset of 50 classes. This structure lends itself to a representation akin to a confusion matrix, as provided by figure \ref{fig:imagenet-ae-50-confusion-matrix}. It is crucial to keep in mind that its significance is strongly limited by having only one AE for each pair, and one source image per source class.
 
-\begin{figure}[htb]
+\begin{figure}[h!]
 	\centering
 	\includegraphics[width=\textwidth]{images/confusion-matrices/imagenet-ae-50.png}
 	\caption{Confidence of GoogLeNet on imagenet-ae-50, broken down by source and target class. White indicates high confidence.}
@@ -1303,7 +1302,7 @@ The reverse does not seem to apply. The confidence among the columns in figure \
 
 As indicated above, a major drawback of performing this analysis on the imagenet-ae-50 batch is the fact that each confidence value is only generated from one data point. Fortunately, a larger number of AE batches were created for GTSRB that all have the same source and target classes\footnote{Namely all classes in GTSRB.}. Most importantly, since the class representatives are chosen at random, they vary across the different batches. While the batches also share an iteration count of 500, their value for $c$ differs quite broadly. However, the results presented in section \ref{sec:fundamental-properties} give reason to believe that a larger/smaller value of $c$ does not induce systematic bias in favor or some source-target class pairs, but rather increases/decreases confidences uniformly. In other words, it might make trends like those in figure \ref{fig:imagenet-ae-50-confusion-matrix} less visible by adding entire sets of high or low confidence, but should not create new trends. A confusion-matrix like plot for a combination of the GTSRB batches is presented in figure \ref{fig:gtsrb-ae-multiple-confusion-matrix}.
 
-\begin{figure}[htb]
+\begin{figure}[h!]
 	\centering
 	\includegraphics[width=0.8\textwidth]{images/confusion-matrices/gtsrb-ae-multiple-0005-0025-0037-005.png}
 	\caption{Confidence of GTSRB-Net on combined gtsrb-ae-\{0.005, 0.025, 0.037, 0.05\}, broken down by source and target class. White indicates high confidence.}
@@ -1315,12 +1314,80 @@ With 4 AEs per element, this figure is a bit more significant than figure \ref{f
 % TODO show representatives of those classes that are easily / hardly transformed.
 
 
-%\section{Predicting the generation progress}
+
+
+
+
+
+
+
+
+
+\section{Predicting the generation progress}
+In section \ref{subsec:iterative-properties}, particularly around figure \ref{fig:confidence-evolution}, the development of network confidence on the source class and adversarial class were probed. It was observed that adversarial confidence roughly follows a sigmoidal shape during a successful run. Furthermore, it is evident that the curve does not approach a value of $1.0$ for an unsuccessful run. Since generating lots of adversarial examples is computationally expensive, this gives rise to an opportunity: If the initial part of the confidence development is indicative of the final confidence, one can give up on hopeless cases and save the computation time for more promising ones.
+
+In the following, the method used to probe the predictive power of the confidence progress during the initial iterations is presented. The idea is to fit a parameterized function to the first part of the curve. One of the free parameters indicates the final confidence and can be used to estimate the change of successful AE generation if the process is continued. The others give some freedom to the shape of the function, allowing for a meaningful fit. Since the successful conversion plots resemble a sigmoidal function, a parameterized sigmoid as per equation \eqref{parameterized-sigmoid} is used.
+
+\begin{align}
+	\sigma \braces{x, \alpha, \beta, x_0} &= \frac{\beta}{1 + e^{-\alpha \braces{x - x_0}}} \label{eq:parameterized-sigmoid}
+\end{align}
+
+The parameter $x$ indicates the iteration, while $\alpha$, $\beta$ and $x_0$ are free parameters. Here, $x_0$ corresponds to the turning point of the curve. It normally rests at $0$, but since a rise in confidence may occur much later, this parameter allows the function to approximate the data in a meaningful way. A similar purpose is fulfilled by $\alpha$, which controls the gradient at the turning point. The remaining free parameter $\beta$ indicates the asymptotic height of the sigmoid and can thus serve as a predictor for the value at which the confidence will saturate.
+
+There is obviously a problematic side to this approach. If the data indeed follows a sigmoidal path and the function is fitted based on the foremost data points, then the chance of success appears to be very low. The foremost part of the sigmoidal curve is the least significant bit because it closely resembles a straight line. Predicting the eventual height of the function from that seems doubtful. However, judgment based on visual impressions is easily led astray, so measurements are presented below.
+
+% TODO Describe what has been done
+For the training portion, the first $40\%$ of the curves have been chosen. While this means that $40\%$ of the execution time would be spent even if the pair of source image and target class is hopeless, given the challenge outlined above it seems appropriate to use a rather large value. The sigmoid was fitted to this portion of the data via the Levenberg-Marquardt least squares algorithm\footnote{specifically, \emph{SciPy's} implementation of it}, and starting values of $\alpha = 0.01$, $\beta = 0.5$ and $x_0 = 300$ were chosen after visual inspection of some of the confidence progress curves. Select curves from AE generation on ImageNet and the corresponding fitted functions are shown in figure \ref{fig:progress-fit}.
+
+\begin{figure}[htp]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+    		\centering
+        \includegraphics[scale=0.5]{progress/imagenet-ae-50-500-0dot9-thresholds-0dot5-0dot1-success.png}
+        \caption{Fit on successful AE generation}
+        \label{fig:progress-fit-success}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[b]{0.45\textwidth}
+    		\centering
+        \includegraphics[scale=0.5]{progress/imagenet-ae-50-500-0dot9-thresholds-0dot5-0dot1-failure.png}
+        \caption{Fit on failed AE generation}
+        \label{fig:progress-fit-failure}
+    \end{subfigure}
+    \caption{Parameterized sigmoidal fit to confidence evolution. Source images were taken from ImageNet and transformed to random classes for 500 iterations with $c = 0.9$. The first 200 points were used to fit the functions.}
+    \label{fig:progress-fit}
+\end{figure}
+
+The curves in figure \ref{fig:progress-fit-success} exhibit a strong difference. While the blue curve is approximated almost perfectly, the green one's confidence after 500 iterations is severely underestimated. The most grave cause for this is likely the point at which the presumed sigmoid starts its ascent. The blue curve starts with a steep slope, and also begins to settle down within the first 200 iterations. For the green curve, the optimization has much less information to work with, since the curve is almost completely flat during the first 200 steps. A similar observation can be made in figure \ref{fig:progress-fit-failure}. While both fits are insufficient, the red one rises higher than the orange one, because the true curve begins to rise much earlier.
+
+% Conclude how this is a bad idea
+% Anyway, give some statistics about how good the fit is (MSE) and how far the final confidence prediction deviates from the ground truth (on average).
+
+
+
+
+
+
+
+
+
+
 
 %\section{Conclusion}
 % The confidence matrices should be made much more significant by using more than one AE for each pair
 % Something that might be explored in further work is who AEs generated from training data differ from those spawned from other sources
 % Results from section on confusion matrices might be used to more efficiently generate lots of AEs
+
+
+
+
+
+
+
+
+
+
 
 
 \begin{appendix}
@@ -1356,6 +1423,7 @@ With 4 AEs per element, this figure is a bit more significant than figure \ref{f
 % List of tables
 % List of acronyms
 % List of algorithm
+% Eigenständigkeitserklärung
 
 % TODO TODOS
 % Be consistent with whether figure captions end with a dot or not.
@@ -1367,6 +1435,11 @@ With 4 AEs per element, this figure is a bit more significant than figure \ref{f
 % Introduction for every section
 % Add [h!!!!!!] to a lot of figures
 % Remove [scale=...] and [width=...] specifications from figures where unnecessary
+% Uniform linewidth of 1.2
+% Make sure all plots contain all relevant information
+% Rename aes_old folder to aes
+% Spell checking
+% Rename "original" to source
 
 % AE by superposition
 % Is it possible to analyze the dependence of AE generation on data dimensionality by comparing GTSRB-Net and GoogleNet AEs?

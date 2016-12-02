@@ -1,0 +1,2 @@
+MSE over SUCCESSFUL samples and data points:	0.329867021487
+MSE over FAILED samples and data points:	6.71224494526e-05
