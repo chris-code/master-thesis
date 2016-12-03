@@ -9,4 +9,4 @@ pdflatex "$filename".tex
 pdflatex "$filename".tex
 
 # clean up
-rm "$filename".aux "$filename".bbl "$filename".blg "$filename".log "$filename".toc
+rm "$filename".aux "$filename".bbl "$filename".blg "$filename".log "$filename".toc "$filename".lof "$filename".lot "$filename".loa
