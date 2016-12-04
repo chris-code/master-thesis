@@ -21,7 +21,7 @@ AE_GRAD_COEFF = 0.9
 DATASET_NAME = 'imagenet'
 CAFFE_ROOT = '/home/chrisbot/Projects/caffe'
 IMAGE_LIST_PATH = '/media/sf_Masterarbeit/data/ILSVRC2012_img_train/images_labeled.txt'
-OUTPUT_PREFIX = '/media/sf_Masterarbeit/data/AE_PROGRESS/{0}_{1}c_{2}iter{3}samples'.format(
+OUTPUT_PREFIX = '/media/sf_Masterarbeit/data/AE_PROGRESS/{0}_{1}c_{2}iter_{3}samples'.format(
     DATASET_NAME, AE_GRAD_COEFF, ITERATIONS, PROGRESS_COUNT)
 
 BATCH_SIZE = 1
