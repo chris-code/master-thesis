@@ -222,7 +222,7 @@ The goal of neural network training is usually to minimize the loss function (al
 
 \begin{figure}[h!tb]
 	\centering
-	\includegraphics[width=0.7\textwidth]{images/gradient_descent.png}
+	\includegraphics[width=0.6\textwidth]{images/gradient_descent.png}
 	\caption[Gradient descent method]{Illustration of the gradient descent method}
 	\label{fig:gradient-descent}
 \end{figure}
@@ -262,7 +262,7 @@ The convolutional layers of the CNNs used in this thesis and in practice are sli
 
 \begin{figure}[h!tb]
 	\centering
-	\includegraphics[scale=1.00]{images/convolution_layer_maps.png}
+	\includegraphics{images/convolution_layer_maps.png}
 	\caption[Input and output maps in convolutional layers]{Schematic of a convolutional layer with multiple input and output maps}
 	\label{fig:convolutional-layer-maps}
 \end{figure}
@@ -274,7 +274,7 @@ The parsimony with free parameters required by a convolutional layer to produce 
 
 \begin{figure}[h!tb]
 	\centering
-	\includegraphics[scale=1.00]{images/pooling_layer.png}
+	\includegraphics{images/pooling_layer.png}
 	\caption[Pooling layer functionality]{Schematic of a pooling layer downsizing an input map}
 	\label{fig:pooling-layer}
 \end{figure}
@@ -504,14 +504,14 @@ With the method presented in section \ref{sec:iterative-fgsm}, it is possible to
 \begin{figure}[h!tb]
     \centering
     \begin{subfigure}[t]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{aes_new/panda.png}
+        \includegraphics[width=\textwidth]{aes/panda.png}
         \caption{Original, rescaled image as fed into the network. Top prediction: \emph{giant panda}, 99.23\% confidence.}
         \label{fig:ae-example-original}
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
     \begin{subfigure}[t]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{aes_new/panda_acorn_10_0dot9.png}
+        \includegraphics[width=\textwidth]{aes/panda_acorn_10_0dot9.png}
         \caption{Adversarial example. Top prediction: \emph{acorn}, 86.17\% confidence.}
         \label{fig:ae-example-ae}
     \end{subfigure}
@@ -526,14 +526,14 @@ Even though no visible changes are apparent, the right image is clearly not iden
 \begin{figure}[h!tb]
     \centering
     \begin{subfigure}[t]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{aes_new/panda_acorn_10_0dot9_posdiff.png}
+        \includegraphics[width=\textwidth]{aes/panda_acorn_10_0dot9_posdiff.png}
         \caption{Pointwise difference, positive part. See appendix \ref{sec:visualizing-diff} for details.}
         \label{fig:ae-difference-diff}
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
     \begin{subfigure}[t]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{aes_new/panda_acorn_10_0dot9_grad.png}
+        \includegraphics[width=\textwidth]{aes/panda_acorn_10_0dot9_grad.png}
         \caption{Sign of the gradient in the first iteration as used by iterative FGSM. Scaled by the 98th percentile to scale to visible range.}
         \label{fig:ae-difference-grad}
     \end{subfigure}
@@ -569,14 +569,14 @@ To test this hypothesis, the same procedure with the same parameters was repeate
 \begin{figure}[h!tb]
     \centering
     \begin{subfigure}[t]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{aes_new/panda_dresser_10_0dot9_posdiff.png}
+        \includegraphics[width=\textwidth]{aes/panda_dresser_10_0dot9_posdiff.png}
         \caption{Pointwise difference}
         \label{fig:ae-dresser-difference-diff}
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
     \begin{subfigure}[t]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{aes_new/panda_dresser_10_0dot9_grad.png}
+        \includegraphics[width=\textwidth]{aes/panda_dresser_10_0dot9_grad.png}
         \caption{Sign of the gradient in the first iteration as used by iterative FGSM}
         \label{fig:ae-dresser-difference-grad}
     \end{subfigure}
@@ -591,14 +591,14 @@ As the case stands, it is possible that feigning a more dresser-like outline wou
 \begin{figure}[h!tb]
     \centering
     \begin{subfigure}[t]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{aes_new/panda_acorn_10_3dot0_posdiff.png}
+        \includegraphics[width=\textwidth]{aes/panda_acorn_10_3dot0_posdiff.png}
         \caption{Pointwise difference}
         \label{fig:ae-high-power-img}
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
     \begin{subfigure}[t]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{aes_new/panda_acorn_10_3dot0_grad.png}
+        \includegraphics[width=\textwidth]{aes/panda_acorn_10_3dot0_grad.png}
         \caption{Sign of the gradient in the first iteration as used by iterative FGSM}
         \label{fig:ae-high-power-diff}
     \end{subfigure}
@@ -673,7 +673,7 @@ Yet, it just shows that GoogLeNet can be led to believe that the input shows a d
 
 \begin{figure}[h!tb]
 	\centering
-	\includegraphics[scale=0.90]{images/aes_new/panda_dresser_100_1dot8.png}
+	\includegraphics[scale=0.90]{images/aes/panda_dresser_100_1dot8.png}
 	\caption[Flawed adversarial example obtained with high adpation strength]{Result of iterative FGSM on \ref{fig:ae-example-original} with $c = 1.8$, $100$ iterations and \emph{n03016953, dresser} as target class.}
 	\label{fig:ae-panda-dresser-1dot8}
 \end{figure}
@@ -1379,13 +1379,11 @@ Date / Datum \hspace{7.6cm} Signature / Unterschrift
 
 % TODO TODOS
 % Consistent variable names etc.
-% Make sure URL in References show up where important
 % Introduction for every section
-% Add [h!!!!!!] to a lot of figures
-% Remove [scale=...] and [width=...] specifications from figures where unnecessary
 % Uniform linewidth of 1.2
+
 % Make sure all plots contain all relevant information
-% Rename aes_old folder to aes
+% Rename aes folder to aes
 % Spell checking
 % Rename "original" to source
 % Fix undefined references
