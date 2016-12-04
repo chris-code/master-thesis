@@ -18,6 +18,10 @@
 \usepackage{algpseudocode} % Pseudocode
 \usepackage{algorithm} % Float for algorithms
 \usepackage{multirow}
+%\usepackage{natbib}
+%\bibliographystyle{alphanat}
+\usepackage{url}
+\bibliographystyle{alpha}
 
 % TODO replace some of these \newcommands with \DeclareMathOperators
 \newcommand\braces[1]{\left(#1\right)}
@@ -59,7 +63,7 @@
     \begin{center}
     \vphantom{1cm}
     \vspace{1cm}
-    \huge \textbf{Exploring ways to harden deep convolutional neural networks against constructed adversarial examples} \\
+    \huge \textbf{Exploring Ways to Harden Deep Convolutional Neural Networks against Constructed Adversarial Examples} \\
     \vspace{3cm}
     %\LARGE \textbf{Report}\\
     \normalsize
@@ -140,7 +144,7 @@ In the area of machine learning, artificial neural networks are some of the most
 
 A neuron receives incoming electrical pulses, called \emph{action potentials}, from the axons of other neurons via its dendrites. A connection between an axon and a dendrite is called a \emph{synapse}. These synapses can vary in strength, so the intensity of the received pulse is modulated by the synaptic connectivity. Multiple action potentials may arrive in the soma, the cell body of a neuron, in quick succession, causing the membrane potential of the soma to increase. If enough action potentials arrive within a short time via strong synapses, this may cause the cell in question to initiate an action potential which traverses along its axon. This can be considered to be a decision of the cell to pass the message on to other cells.
 
-An artificial neuron as used in an ANN mimics this process, but in a greatly simplified form. All action potential rates are represented by real numbers\footnote{Floating point numbers in a computer system}. A visual representation is provided in figure \ref{fig:artificial-neuron-schematic}.
+An artificial neuron as used in an ANN mimics this process, but in a greatly simplified form. All action potential rates are represented by real numbers\footnote{floating point numbers in a computer system}, thereby discarding temporal information. A visual representation is provided in figure \ref{fig:artificial-neuron-schematic}.
 
 
 \begin{figure}[h!tb]
@@ -157,7 +161,7 @@ The first thing to note is that the input to the neuron is now formalized as a v
 	o &= \sigma \braces{m} \label{eq:neuron-math-activation-function}
 \end{align}
 
-Take note of the fact that the very first step performed on the input is essentially an inner product. This will become important later on, especially in chapter \ref{sec:adversarial-examples}. Several activation functions are possible. A plot of 3 common choices is given in figure \ref{fig:activation-functions}.
+Take note of the fact that the very first step performed on the input is essentially a dot product. This will become important later on, especially in chapter \ref{sec:adversarial-examples}. Several activation functions are possible. A plot of 3 common choices is given in figure \ref{fig:activation-functions}.
 
 \begin{figure}[h!tb]
 	\centering
@@ -168,7 +172,7 @@ Take note of the fact that the very first step performed on the input is essenti
 
 Out of these, the easiest to justify is the logistic sigmoid. If the output is to represent the neuron's firing rate, it must not become negative, and it must saturate because of the refractory period required by biological cells. Under these conditions, the logistic function is a simple continuous choice. The hyperbolic tangent is a linearly transformed version of this. While its negative range may be harder to interpret biologically, the option to output negative values may relieve the trainable parameters of a network of some demand for computational power, thus facilitating training. Despite being non-continuous and having no upper bound, the ReLU is the most popular activation function according to \cite{deep-learning}. The networks utilized in this thesis mostly make use of the $\tanh$ and ReLU activation functions.
 
-Since a single neuron as described above consists only of an inner product and a one-dimensional non-linearity, its computational power is limited. Artificial neural networks rely on thousands of neurons to perform their tasks. This gives rise to the question of how to connect all those neurons. Conceptually, one could link them up in such a way that a neuron receives input from another neuron while at the same time delivering input to that very neuron (either directly or via proxy neurons), forming a cycle. This is sometimes done and is called a \emph{Recurrent Neural Network (RNN)}, but is out of scope for this thesis. Instead, neurons will be organized in \emph{layers}, as shown in figure \ref{fig:neural-nework-structure}.
+Since a single neuron as described above consists only of an dot product and a one-dimensional non-linearity, its computational power is limited. Artificial neural networks rely on thousands of neurons to perform their tasks. This gives rise to the question of how to connect all those neurons. Conceptually, one could link them up in such a way that a neuron receives input from another neuron while at the same time delivering input to that very neuron (either directly or via proxy neurons), forming a cycle. This is sometimes done and is called a \emph{Recurrent Neural Network (RNN)}, but is out of scope for this thesis. Instead, neurons will be organized in \emph{layers}, as shown in figure \ref{fig:neural-nework-structure}.
 
 % TODO fix indices
 \begin{figure}[h!tb]
@@ -184,7 +188,7 @@ Here, each layer contains numerous neurons, none of which share a connection. Th
 % TODO describe layers as homeomorphisms according to http://colah.github.io/posts/2014-03-NN-Manifolds-Topology/
 In the figure, the layer above the input contains 3 neurons and is named "Hidden layer 1". Hidden layers are those that are neither input nor output and thus do not communicate with any system outside the network. Note that each neuron here has two indices: The first one designates the layer affiliation and the second one identifies the individual neuron. The first hidden layer is followed by a second one. A neural network can conceptually have an unlimited amount of hidden layers, but at least one is necessary to satisfy the \emph{universal approximation theorem} \cite{universal-approximator-theorem} which attests that for every function, there exists a neural network that can approximate said function to an arbitrary but fixed accuracy\footnote{However, this is of limited practical use, since the theorem makes no statement about the required number of neurons, or how to set the weights.}.
 
-A further notational simplification can be made at this point. Equation \eqref{eq:neuron-math-membrane-potential} described the operation of a single neuron as an inner product. If we treat the output of \emph{Hidden layer 1} as a vector $\vec{x_0}$ and the output of \emph{Hidden layer 2} as another vector $\vec{x_1}$, the entire operation of the second hidden layer can be described by a matrix-vector product according to equations \eqref{eq:layer-math-membrane-potential} and \eqref{eq:layer-math-activation-function}.
+A further notational simplification can be made at this point. Equation \eqref{eq:neuron-math-membrane-potential} described the operation of a single neuron as an dot product. If we treat the output of \emph{Hidden layer 1} as a vector $\vec{x_0}$ and the output of \emph{Hidden layer 2} as another vector $\vec{x_1}$, the entire operation of the second hidden layer can be described by a matrix-vector product according to equations \eqref{eq:layer-math-membrane-potential} and \eqref{eq:layer-math-activation-function}.
 
 \begin{align}
 	\vec{m_1} &= \mat{W_{1}} \, \vec{x_0} \label{eq:layer-math-membrane-potential} \\
@@ -204,7 +208,7 @@ The relatively recent machine learning trend going by the name of \emph{deep lea
 % TODO some networks make use of this? Sure its not all of them?
 % TODO glorot formula
 % TODO caffe does glorot initialization slightly differently
-One question that has not been addressed yet is how to actually set the weights. Under normal circumstances there is no closed form solution to compute the optimal parameters for a model. Thus, a training process that starts with a random set of weights and then iteratively improves on them is used. To accomplish random initialization, values for all weights are drawn from one of various distributions. Common choices are uniform and normal distributions. In 2010, a more sophisticated method has been proposed in \cite{glorot-understanding-deep-nn-training}. It still relies on a uniform initialization, but the limits are set for each layer individually, so as to retain the variance of the data as it flows through the layers of the network. Some networks in this thesis make use of this advanced initialization\footnote{The \emph{caffe} software used actually slightly deviates from the proposed process, see \cite{caffe-xavier}}.
+One question that has not been addressed yet is how to actually set the weights. Under normal circumstances there is no closed form solution to compute the optimal parameters for a model. Thus, a training process that starts with a random set of weights and then iteratively improves on them is used. To accomplish random initialization, values for all weights are drawn from one of various distributions. Common choices are uniform and normal distributions. In 2010, a more sophisticated method has been proposed in \cite{glorot-understanding-deep-nn-training}. It still relies on a uniform initialization, but the limits are set for each layer individually, so as to retain the variance of the data as it flows through the layers of the network. Some networks in this thesis make use of this advanced initialization\footnote{The \emph{caffe} software used here actually slightly deviates from the proposed process, see \cite{caffe-xavier}}.
 
 In order to improve the thusly initialized weights, it is first necessary to define a way to quantify how well (or poorly) a given set of parameters performs. To this end, a \emph{loss function} (also called \emph{objective function} or \emph{error function}) is used, which combines the predictions of a network with the training labels to provide an estimate of its performance. In other words, it is a function that maps labeled input data and the parameters to a scalar value. A common loss function is the \emph{Mean Squared Error (MSE)} given in equation \eqref{eq:mse}, where $N$ is the number of data points and $\vec{\hat Y}$ and $\vec{Y}$ are vectors containing the predictions and true labels, respectively. In multinomial classification tasks, the \emph{cross entropy} loss given in equation \eqref{eq:cross-entropy-loss} \cite{caffe-cross-entropy} is a good choice if the predictions for all classes are to be interpreted as probabilities (meaning they are required to add up to 1). Here, $\vec{\hat Y}$ is a matrix containing all predicted class probabilities for all $N$ data points and $\vec{Y}$ is a vector indicating the true class.
 
@@ -214,7 +218,7 @@ In order to improve the thusly initialized weights, it is first necessary to def
 	\text{Cross entropy} &= \frac{-1}{N} \sum_{i=1}^N \log{\braces{\mat{\hat Y}_{i, \vec{Y}_i}}} \label{eq:cross-entropy-loss}
 \end{align}
 
-The goal of neural network training is usually to minimize the loss function (although it could be maximization depending on the formulation of the loss function). This is most often accomplished with a \emph{stochastic gradient descent} \cite{stochastic-gradient-descent-learning-neural-networks} on the loss function mentioned above w.r.t the weights of the network\footnote{In practice, the gradient w.r.t a lot of weights can be computed very efficiently by exploiting properties of the chain rule, a method known as \emph{Backpropgation}, or Backprop for short.}. A simple, one-dimensional case is given in figure \ref{fig:gradient-descent}.
+The goal of neural network training is usually to minimize the loss function (although it could be maximization depending on the formulation of the loss function). This is most often accomplished with a \emph{stochastic gradient descent} \cite{stochastic-gradient-descent-learning-neural-networks} on the loss function mentioned above w.r.t the weights of the network\footnote{In practice, the gradient w.r.t a large number of weights can be computed very efficiently by exploiting properties of the chain rule, a method known as \emph{Backpropgation}, or Backprop for short.}. A simple, one-dimensional case is given in figure \ref{fig:gradient-descent}.
 
 \begin{figure}[h!tb]
 	\centering
@@ -248,9 +252,9 @@ A special kind of ANN that has proven to be particularly effective on image data
 	\label{fig:convolutional-layer}
 \end{figure}
 
-The easiest way to understand this is to imagine the left part as an input image of size $4 \times 8$, with an immediately following convolutional layer. In this example, the convolutional layer has one filter of size $3 \times 3$, though other sizes are possible. Since these are 2 arrays of two-dimensional shape, the computation of the convolutional layer's output can be computed by a two-dimensional convolution, save for possible activation functions. As can be seen in figure \ref{fig:convolutional-layer}, this produces an output of size $2 \times 6$. The size reduction is a consequence of neglect to deal with the edges of the input image; the filter is only centered on those areas where the input is completely defined\footnote{While the reduction from $4 \times 8$ to $2 \times 6$ may seen extreme, it is worth mentioning that the number of pixels "lost" only grows with the \emph{circumference} of the input data, so for a more reasonably sized image, the output map will only be slightly smaller.}.
+The easiest way to understand this is to imagine the left part as an input image of size $4 \times 8$, with an immediately following convolutional layer. In this example, the convolutional layer has one filter of size $3 \times 3$, though other sizes are possible. Since these are 2 arrays of two-dimensional shape, the computation of the convolutional layer's output can be computed by a two-dimensional convolution, save for possible activation functions. As can be seen in figure \ref{fig:convolutional-layer}, this produces an output of size $2 \times 6$. The size reduction is a consequence of neglect to deal with the edges of the input image; the filter is only centered on those areas where the input is completely defined\footnote{While the reduction from $4 \times 8$ to $2 \times 6$ may seen extreme, it is worth mentioning that the number of pixels "lost" only grows with the \emph{circumference} of the input data (and kernel size), so for a more reasonably sized image, the output map will only be slightly smaller.}.
 
-However, the figure also indicates that there is a different, connectionist perspective on this process. In this view, the neurons on the right still connect to the preceding neurons with weights and compute an inner product. There are 2 major differences to a conventional layer. First, each neuron is only connected to 9 input values, instead of all of them, leading to the first considerable reduction in the number of weights that need to be trained. Second, all neurons use \emph{the same weights} to connect to their (distinct) 9 inputs, giving rise to the term \emph{weight sharing}. This again greatly reduces the number of weights, to a constant count of 9, regardless of the size of the previous layer. For a quick comparison, a conventional layer with 12 neurons would lead to $12 \cdot 32 = 384$ parameters. Additionally, in contrast to the constancy of the 9 weights in a convolutional layer, this figure would grow with the product of both layer sizes. For image sizes typically found in practical applications, this rapidly becomes impractical.
+However, the figure also indicates that there is a different, connectionist perspective on this process. In this view, the neurons on the right still connect to the preceding neurons with weights and compute an dot product. There are 2 major differences to a conventional layer. First, each neuron is only connected to 9 input values, instead of all of them, leading to the first considerable reduction in the number of weights that need to be trained. Second, all neurons use \emph{the same weights} to connect to their (distinct) 9 inputs, giving rise to the term \emph{weight sharing}. This again greatly reduces the number of weights, to a constant count of 9, regardless of the size of the previous layer. For a quick comparison, a conventional layer with 12 neurons would lead to $12 \cdot 32 = 384$ parameters. Additionally, in contrast to the constancy of the 9 weights in a convolutional layer, this figure would grow with the product of both layer sizes. For image sizes typically found in practical applications, this rapidly becomes impractical.
 
 Using a convolutional layer does not just reduce the number of parameters that require training, but also tailors the network's structure to the specific properties of image related tasks. Since each neuron in a convolutional layer is connected only to a small, contiguous region of the input image, the learning algorithm is forced to train the kernel weights in such a way that they focus on local features. Since a lot of distinctive information in images such as edges, corners and textures emerges from local features, this mechanism confers the benefit that data not relevant to those features is implicitly ignored. This shares some similarities with the concept of receptive fields in human vision, which are also local.
 
@@ -263,7 +267,7 @@ The convolutional layers of the CNNs used in this thesis and in practice are sli
 	\label{fig:convolutional-layer-maps}
 \end{figure}
 
-On the left side we see 3 input maps. On the lowest layer, the input maps correspond to the 3 color channels red, green and blue\footnote{When using a grayvalue image, there is only 1 channel and therefore only 1 map}. On the right side the convolutional layer produces 2 output maps. The process for computing one such output map is as follows: First of all, each input map gets convolved with a filter that is unique to that map (and to the output map). The resulting arrays are summed up to form one array of the correct shape. Depending on the network layout, processing the array element-wise with an activation function may be a part of this step. This process is performed multiple times with distinct filters, depending on how many output maps are desired. Since for every pair of an input map and an output map there is exactly one filter, the total number of filters in a convolutional layer is $M \cdot N$, where $M$ and $N$ are the counts of input and output maps, respectively.
+On the left side we see 3 input maps. On the lowest layer, the input maps correspond to the 3 color channels red, green and blue\footnote{When using a grayvalue image, there is only 1 channel and therefore only 1 map.}. On the right side the convolutional layer produces 2 output maps. The process for computing one such output map is as follows: First of all, each input map gets convolved with a filter that is unique to that map (and to the output map). The resulting arrays are summed up to form one array of the correct shape. Depending on the network layout, processing the array element-wise with an activation function may be a part of this step. This process is performed multiple times with distinct filters, depending on how many output maps are desired. Since for every pair of an input map and an output map there is exactly one filter, the total number of filters in a convolutional layer is $M \cdot N$, where $M$ and $N$ are the counts of input and output maps, respectively.
 
 % TODO Source for Max-Pooling
 The parsimony with free parameters required by a convolutional layer to produce an output map makes it feasible to use many filters and consequently produce a great deal of output maps. This empowers the CNN with considerable modeling capacity, but also poses the challenge of dealing with all that generated output. CNNs have one more mechanism at their disposal to solve this specific problem. To reduce the dimensionality of the feature maps, they use \emph{pooling} layers, which execute subsampling on the maps as indicated by figure \ref{fig:pooling-layer}.
@@ -299,11 +303,11 @@ As one can see, the amount of data has been greatly reduced. However, if pooling
 % TODO cite more things, especially for the molecular modeling
 In trying to recreate the learning power of the human brain on a computer, one can focus on various levels of abstraction. A system could potentially model all the chemical processes that happen within and around cells and their synapses on a molecular level. Less drastically, one could work with aggregates and averages of these values in order to retain most of the biological components and create a time-dependent system this way. Alternatively, larger groups of neurons could be used as the basic building blocks for a larger system \cite{dynamic-field-theory-movement-preparation}, operating on a level of high abstraction from chemical processes.
 
-The connectionist view is based on the proposition that ANNs as described in section \ref{sec:introduction} model the functionally relevant processes in biological brains in sufficient detail. Such systems have shown state-of-the-art performance on diverse tasks, in some cases even surpassing human performance \cite{multi-column-deep-networks-image-classification}. One important property that is required of machine learning models is the ability to \emph{generalize}. If given training data and the desired labels, a neural network should not merely learn to classify this specific data\footnote{This could be solved perfectly by just storing the data and the label}, but also learn to correctly classify new and unseen data, so long as it is reasonably similar to the training data, even if the specifics vary.
+The connectionist view is based on the proposition that ANNs as described in section \ref{sec:introduction} model the functionally relevant processes in biological brains in sufficient detail. Such systems have shown state-of-the-art performance on diverse tasks, in some cases even surpassing human performance \cite{multi-column-deep-networks-image-classification}. One important property that is required of machine learning models is the ability to \emph{generalize}. If given training data and the desired labels, a neural network should not merely learn to classify this specific data\footnote{this could be solved perfectly by just storing the data and the label}, but also learn to correctly classify new and unseen data, so long as it is reasonably similar to the training data, even if the specifics vary.
 
-To probe a model's generalization ability, a part of the available data is usually withheld from training, effectively making it unseen data. After training, the networks performance on this set can be evaluated to obtain an estimate of its performance in practice. Even though training and test data may be a bit stronger correlated than the training data and the input in a productive environment\footnote{For instance due to changes in illumination or camera equipment}, ANNs have demonstrated reasonable generalization ability.
+To probe a model's generalization ability, a part of the available data is usually withheld from training, effectively making it unseen data. After training, the networks performance on this set can be evaluated to obtain an estimate of its performance in practice. Even though training and test data may be a bit stronger correlated than the training data and the input in a productive environment\footnote{for instance due to changes in illumination or camera equipment}, ANNs have demonstrated reasonable generalization ability.
 
-However, some discoveries have called this ability under scrutiny. A recent paper \cite{intriguing-properties-of-neural-networks} demonstrated that a state-of-the-art neural network can be tricked into misclassifying an input image by applying minuscule changes, even small enough to be imperceptible by humans. The thusly altered images are called \emph{adversarial examples (AEs)}. Their existance is problematic because from a generalization standpoint the minimum requirement would be that a network classifies visually indistinguishable images identically if it has a high confidence on one of them. However, network confidence is not an obstacle to finding AEs, they exist even for images where the network makes a certain and correct class affiliation assertion. Figure \ref{fig:intriguing-properties-ae} shows such an adversarial example\footnote{Even though \cite{intriguing-properties-of-neural-networks} contains a link to full-resolution images, it is dysfunctional as of the time of this writing (Error 404)}.
+However, some discoveries have called this ability under scrutiny. A recent paper \cite{intriguing-properties-of-neural-networks} demonstrated that a state-of-the-art neural network can be tricked into misclassifying an input image by applying minuscule changes, even small enough to be imperceptible by humans. The thusly altered images are called \emph{adversarial examples (AEs)}. Their existance is problematic because from a generalization standpoint the minimum requirement would be that a network classifies visually indistinguishable images identically if it has a high confidence on one of them. However, network confidence is not an obstacle to finding AEs, they exist even for images where the network makes a certain and correct class affiliation assertion. Figure \ref{fig:intriguing-properties-ae} shows such an adversarial example\footnote{Even though \cite{intriguing-properties-of-neural-networks} contains a link to full-resolution images, it is dysfunctional as of the time of this writing (Error 404).}.
 
 \begin{figure}[h!tb]
 \centering
@@ -325,7 +329,7 @@ Here, $\vec{x}$ is the given image, $\vec{r}$ its perturbation, $f$ the function
 
 \subsection{Fast Gradient Sign Method}
 \label{sec:fast-gradient-sign-method}
-The major drawback of this approach is the required computation time to generate the adversarial examples. In order to study AEs and their properties in a quantative way and obtain significant statistical figures, this is insufficient. Fortunately, a much more efficient method was proposed in \cite{explaining-and-harnessing-adversarial-examples}. The fundamental idea is to optimize the input layer much like the parameters of the network, but with a different goal in mind. In order to understand the specifics of the process, consider the formalization\footnote{Some variable names have been changed to for consistency with equations \eqref{eq:ae-formalization-minimize} - \eqref{eq:ae-formalization-valid}} in equation \eqref{eq:fast-gradient-sign-method}.
+The major drawback of this approach is the required computation time to generate the adversarial examples. In order to study AEs and their properties in a quantative way and obtain significant statistical figures, this is insufficient. Fortunately, a much more efficient method was proposed in \cite{explaining-and-harnessing-adversarial-examples}. The fundamental idea is to optimize the input layer much like the parameters of the network, but with a different goal in mind. In order to understand the specifics of the process, consider the formalization\footnote{some variable names have been changed to be consistent with equations \eqref{eq:ae-formalization-minimize} - \eqref{eq:ae-formalization-valid}} in equation \eqref{eq:fast-gradient-sign-method}.
 
 \begin{align}
 	\vec{r} &= c \sign \braces{\nabla_{\vec{x}} J\braces{\vec{\theta}, \vec{x}, l}} \label{eq:fast-gradient-sign-method}
@@ -344,16 +348,16 @@ Using the gradient of $J$ w.r.t. $\vec{x}$ is easily motivated: If one choses an
 	\label{fig:harnessing-ae}
 \end{figure}
 
-Of course, linearization of the loss function (which includes the entire network) around $x$ is a rather strong assumption\footnote{Below we will discuss a linear explanation for the existence of adversarial examples, but it does not easily translate to a one-step ae generation algorithm that relies on linearity of the \emph{entire} network}. Rather than making one big leap in the input space, one can easily turn this approach into an iterative procedure of multiple small steps, in the manner of a proper gradient descent, as will be described in section \ref{sec:iterative-fgsm}. This way, one is able to find nearby AEs even if the linearity assumption is inapplicable, or gives a poor approximation.
+Of course, linearization of the loss function (which includes the entire network) around $x$ is a rather strong assumption\footnote{Below we will discuss a linear explanation for the existence of adversarial examples, but it does not easily translate to a one-step ae generation algorithm that relies on linearity of the \emph{entire} network.}. Rather than making one big leap in the input space, one can easily turn this approach into an iterative procedure of multiple small steps, in the manner of a proper gradient descent, as will be described in section \ref{sec:iterative-fgsm}. This way, one is able to find nearby AEs even if the linearity assumption is inapplicable, or gives a poor approximation.
 
-Even though the FGSM is considerably more efficient compared to the L-BGFS method, repeatedly executing it over numerous iterations again poses the challenge of computation time. At this point it is crucial to realize that the gradient $\nabla_x J$ can be computed efficiently with backpropagation, just like the gradient w.r.t $\theta$. Conceptually, the input can be considered to be just another layer positioned below the first layer of an ANN, merely necessitating another application of the chain rule\footnote{Most neural network software by default won't compute the gradient for the input because it is usually unnecessary. Caffe provides a flag to trigger this computation}. For maximum efficiency, one could even try to integrate AE generation into regular backprop training, with the (possibly minor) complication that AE generation with multiple iterations would be performed in relation to a network with changing weights\footnote{this was not tested in this thesis}.
+Even though the FGSM is considerably more efficient compared to the L-BGFS method, repeatedly executing it over numerous iterations again poses the challenge of computation time. At this point it is crucial to realize that the gradient $\nabla_x J$ can be computed efficiently with backpropagation, just like the gradient w.r.t $\theta$. Conceptually, the input can be considered to be just another layer positioned below the first layer of an ANN, merely necessitating another application of the chain rule\footnote{Most neural network software by default do not compute the gradient for the input because it is usually unnecessary. Caffe provides a flag to trigger this computation.}. For maximum efficiency, one could even try to integrate AE generation into regular backprop training, with the (possibly minor) complication that AE generation with multiple iterations would be performed in relation to a network with changing weights\footnote{this was not tested in this thesis}.
 
 \subsection{Linear explanation of Adversarial Examples}
 \label{subsec:ae-linear-explanation}
 % TODO source for resistance against distortions and noise
 The existence of adversarial examples naturally begs the question how they are even possible and what parts of a model they can be attributed to. They are a surprise since strict splits into training and test sets were believed to vouch for the generalization abilities of ANNs. Experiments with distorted and noisy input data point in the same direction. Since these methods fail to find significant and systematic flaws in neural networks, it is apparent that adversarial examples reside in narrow, low-probability regions of the data distribution, therefore requiring a directional instead of a randomized search.
 
-Since AEs hint at precipitous discontinuities in the input-output map realized by the network, it is inviting to blame them on the nonlinear nature of neural networks. However, as pointed out by \cite{intriguing-properties-of-neural-networks}, even unequivocally linear models such as a softmax linear classifier are susceptible to adversarial examples. An explanation which doesn't require the assumption that neural networks heavily relying on their nonlinear powers was suggested in \cite{explaining-and-harnessing-adversarial-examples}.
+Since AEs hint at precipitous discontinuities in the input-output map realized by the network, it is inviting to blame them on the nonlinear nature of neural networks. However, as pointed out by \cite{intriguing-properties-of-neural-networks}, even unequivocally linear models such as a softmax linear classifier are susceptible to adversarial examples. An explanation which does not require the assumption that neural networks heavily relying on their nonlinear powers was suggested in \cite{explaining-and-harnessing-adversarial-examples}.
 
 This explanation focuses entirely on the linear components of an ANN and high-dimensional input data. Going back to the neuron model layed out in section \ref{sec:artificial-neural-networks}, equations \eqref{eq:neuron-math-membrane-potential} - \eqref{eq:neuron-math-activation-function}, the output of a single unit is computed according to
 
@@ -362,48 +366,48 @@ This explanation focuses entirely on the linear components of an ANN and high-di
 	o &= \sigma \braces{\vec{w}^T \vec{i}}
 \end{align}
 
-where $\vec{w}$ is the weight vector, $\vec{i}$ an input vector of the same size, $\sigma$ the logistic sigmoid activation function. Lastly, $o$ is the output and the value we want to fudge. Note that $\vec{w}^T \vec{i}$ is simply an inner product, and therefore linear. If the inner product is large, $o$ will approach $1$, and if it reaches very far into the negative range it will approach $0$. Since $\vec{i}$ is the only variable we have control over, this is what we need to use to modify $o$.
+where $\vec{w}$ is the weight vector, $\vec{i}$ an input vector of the same size, $\sigma$ the logistic sigmoid activation function. Lastly, $o$ is the output and the value we want to fudge. Note that $\vec{w}^T \vec{i}$ is simply a dot product, and therefore linear. If the dot product is large, $o$ will approach $1$, and if it reaches very far into the negative range it will approach $0$. Since $\vec{i}$ is the only variable we have control over, this is what we need to use to modify $o$.
 
-To simplify the scenario, initial vectors $\vec{i}, \vec{w} \in \{-1,1\}^n$, where $n \geq 8$ is a power of 2 are considered. This is not a technical necessity and the steps described below would work just the same\footnote{Safe for the coefficient introduced below which would need to scale with the size of the elements of $\vec{i}$}, but it allows for a less verbose description. Since the order of the elements of the vectors does not matter, a somewhat orderly weight vector is chosen where the first half contains $+1$ elements and the second half $-1$ elements, so $\vec{w} = \brackets{+1 +1 \dots -1 -1}$. Meanwhile, consider an input of alternating binaries, $\vec{i} = \brackets{+1, -1, +1, -1 \dots}$. In this case, $\vec{w}^T \vec{i} = 0$ holds for symmetry reasons, meaning the neuron is in an undecided state. There is nothing wrong with that, but to fully unfold the effect that is to be demonstrated, the last 4 elements of the input vector are always set to $+1$, leading to $\vec{w}^T \vec{i} = -4$ and subsequently $\sigma \braces{\vec{w}^T \vec{i}} \approx 0.0180$, independently of $n$. This is depicted in figure \ref{fig:ae-explanation} for various powers of $2$ as $n$ (blue crosses).
+To simplify the scenario, initial vectors $\vec{i}, \vec{w} \in \{-1,1\}^n$, where $n \geq 8$ is a power of 2 are considered. This is not a technical necessity and the steps described below would work just the same\footnote{safe for the coefficient introduced below which would need to scale with the size of the elements of $\vec{i}$}, but it allows for a less verbose description. Since the order of the elements of the vectors does not matter, a somewhat orderly weight vector is chosen where the first half contains $+1$ elements and the second half $-1$ elements, so $\vec{w} = \brackets{+1 +1 \dots -1 -1}$. Meanwhile, consider an input of alternating binaries, $\vec{i} = \brackets{+1, -1, +1, -1 \dots}$. In this case, $\vec{w}^T \vec{i} = 0$ holds for symmetry reasons, meaning the neuron is in an undecided state. There is nothing wrong with that, but to fully unfold the effect that is to be demonstrated, the last 4 elements of the input vector are always set to $+1$, leading to $\vec{w}^T \vec{i} = -4$ and subsequently $\sigma \braces{\vec{w}^T \vec{i}} \approx 0.0180$, independently of $n$. This is depicted in figure \ref{fig:ae-explanation} for various powers of $2$ as $n$ (blue crosses).
 
 \begin{figure}[h!tb]
     \centering
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[t]{0.45\textwidth}
         \includegraphics[width=\textwidth]{ae_explanation_ip.png}
-        \caption{Inner product of original and adversarial input}
+        \caption{Dot product}
         \label{fig:ae-explanation-inner-product}
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[t]{0.45\textwidth}
         \includegraphics[width=\textwidth]{ae_explanation_output.png}
-        \caption{Neuron output for original and adversarial input}
+        \caption{Neuron output}
         \label{fig:ae-explanation-neuron-output}
     \end{subfigure}
-    \caption{Inner product and neuron output depending on data dimensionality}
+    \caption{Dot product and neuron output depending on data dimensionality of original and adversarial input}
     \label{fig:ae-explanation}
 \end{figure}
 
 % TODO add a table that shows the same data as the image
 
-For the given input, the neuron is firmly in the off-state. In order to change it to the on-state, the inner product needs to be increased and move into the positive region. Simply put, the inner product will be positive when the input is positive where the weight vector is positive, and negative where the weight vector is negative. Indeed, one could simply set $\vec{i} \coloneqq \sign \braces{\vec{w}}$ since this always fulfills the requirement\footnote{The $\sign$ function is only given to sustain the universality of the approach. Since $\vec{w}$ is a binary vector here, it serves no purpose in this specific context.}. However, that is not a helpful approach when trying to create an adversarial example for the input, since $\vec{i}$ might be vastly different from $\sign \braces{\vec{w}}$. But it is a viable option to change $\vec{i}$ slightly so that it becomes more similar to the sign of the weights. This is described by equation \eqref{eq:ae-explanation-formula}.
+For the given input, the neuron is firmly in the off-state. In order to change it to the on-state, the dot product needs to be increased and move into the positive region. Simply put, the dot product will be positive when the input is positive where the weight vector is positive, and negative where the weight vector is negative. Indeed, one could simply set $\vec{i} \coloneqq \sign \braces{\vec{w}}$ since this always fulfills the requirement\footnote{The $\sign$ function is only given to sustain the universality of the approach. Since $\vec{w}$ is a binary vector here, it serves no purpose in this specific context.}. However, that is not a helpful approach when trying to create an adversarial example for the input, since $\vec{i}$ might be vastly different from $\sign \braces{\vec{w}}$. But it is a viable option to change $\vec{i}$ slightly so that it becomes more similar to the sign of the weights. This is described by equation \eqref{eq:ae-explanation-formula}.
 
 \begin{align}
 	\vec{\hat i}&= \vec{i} + c \cdot \sign \braces{\vec{w}} \label{eq:ae-explanation-formula}
 \end{align}
 
-Here, $\vec{\hat i}$ denotes an adversarial example and $c$ is a strength modulation coefficient. It is not surprising that it resembles equation \eqref{eq:fast-gradient-sign-method} for the FGSM, since the goals are similar. But while FGSM tries to trick an entire network, this equation merely tries to change the output of a single neuron in order to demonstrate the susceptibility of (partly) linear models to adversarial perturbation. Since it does not need to take into account how the neuron's output is processed in higher layers of the network, it doesn't operate on the gradient but simply on the weight vector.
+Here, $\vec{\hat i}$ denotes an adversarial example and $c$ is a strength modulation coefficient. It is not surprising that it resembles equation \eqref{eq:fast-gradient-sign-method} for the FGSM, since the goals are similar. But while FGSM tries to trick an entire network, this equation merely tries to change the output of a single neuron in order to demonstrate the susceptibility of (partly) linear models to adversarial perturbation. Since it does not need to take into account how the neuron's output is processed in higher layers of the network, it does not operate on the gradient but simply on the weight vector.
 
-The effect of this perturbation is also shown in figure \ref{fig:ae-explanation} for a value of $c = 0.001$ (green crosses). As \ref{fig:ae-explanation-inner-product} demonstrates, the strength of the perturbation's effect on the inner product increases with $n$. It is not surprising that a change of constant size to each element amounts to more the larger the vector is, but what is surprising is the strength of this effect. As figure \ref{fig:ae-explanation-neuron-output} indicates, the critical point where the perturbation forces the neuron into the on-state is located around $n = 4096$.
+The effect of this perturbation is also shown in figure \ref{fig:ae-explanation} for a value of $c = 0.001$ (green crosses). As \ref{fig:ae-explanation-inner-product} demonstrates, the strength of the perturbation's effect on the dot product increases with $n$. It is not surprising that a change of constant size to each element amounts to more the larger the vector is, but what is surprising is the strength of this effect. As figure \ref{fig:ae-explanation-neuron-output} indicates, the critical point where the perturbation forces the neuron into the on-state is located around $n = 4096$.
 
-However, when examining both \ref{fig:ae-explanation-inner-product} and \ref{fig:ae-explanation-neuron-output}, one can see that there is a significant visual discrepancy. The critical point around $4096$ is still in a region where the curve for the inner product is still very flat. This gives reason to believe that with a slight increase in data dimensionality, the method can find adversarial examples even for such input data that leads to a much more confident off-state decision (remember that the original inner product was merely $-4$). It is also worth considering just how small of a change $c = 0.001$ implies. Since the vectors are binary, a change of $0.001$ per element means that each element's value gets changed by only $\frac{1}{1000}$ of its scale. This is a trade-off between dimensionality and $c$, larger input allows for a smaller $c$ while smaller input requires a larger $c$.
+However, when examining both \ref{fig:ae-explanation-inner-product} and \ref{fig:ae-explanation-neuron-output}, one can see that there is a significant visual discrepancy. The critical point around $4096$ is still in a region where the curve for the dot product is still very flat. This gives reason to believe that with a slight increase in data dimensionality, the method can find adversarial examples even for such input data that leads to a much more confident off-state decision (remember that the original dot product was merely $-4$). It is also worth considering just how small of a change $c = 0.001$ implies. Since the vectors are binary, a change of $0.001$ per element means that each element's value gets changed by only $\frac{1}{1000}$ of its scale. This is a trade-off between dimensionality and $c$, larger input allows for a smaller $c$ while smaller input requires a larger $c$.
 
-In conclusion, one does not need to invoke nonlinear properties of neural networks to explain the existence of adversarial examples. Indeed, it is preferable to not do so, since while a neural network is \emph{potentially} nonlinear owing to their activation functions, most of these\footnote{and, in fact all of those shown in figure \ref{fig:activation-functions}} contain a region that at least approximates a linear function. Thus, basing an explanation on nonlinearity makes some additional assumptions about the distribution of a networks membrane potentials. Instead of that, the linear explanation relies only on properties of the inner product and input data dimensionality. It was demonstrated that it becomes easier and easier to tamper with the value of an inner product, and hence with neuron outputs, as the data size grows, while keeping the changes to each individual value in the input minimal.
+In conclusion, one does not need to invoke nonlinear properties of neural networks to explain the existence of adversarial examples. Indeed, it is preferable to not do so, since while a neural network is \emph{potentially} nonlinear owing to their activation functions, most of these\footnote{and, in fact all of those shown in figure \ref{fig:activation-functions}} contain a region that at least approximates a linear function. Thus, basing an explanation on nonlinearity makes some additional assumptions about the distribution of a networks membrane potentials. Instead of that, the linear explanation relies only on properties of the dot product and input data dimensionality. It was demonstrated that it becomes easier and easier to tamper with the value of a dot product, and hence with neuron outputs, as the data size grows, while keeping the changes to each individual value in the input minimal.
 
 \subsubsection{Adversarial Examples in Convolutional Neural Networks}
-The explanation given in subsection \ref{subsec:ae-linear-explanation} relates adversarial examples mostly with inner products in high-dimensional spaces. But even though convolutional neural networks are just as susceptible to adversarial examples, their first operation on the input data is usually a convolution which typically uses relatively small filters, in the order of $3 \times 3$ to $7 \times 7$. While it is possible to chose a larger coefficient to have a greater leverage on the the value of the inner product, a reflection on the nature of CNNs allows for a different answer.
+The explanation given in subsection \ref{subsec:ae-linear-explanation} relates adversarial examples mostly with dot products in high-dimensional spaces. But even though convolutional neural networks are just as susceptible to adversarial examples, their first operation on the input data is usually a convolution which typically uses relatively small filters, in the order of $3 \times 3$ to $7 \times 7$. While it is possible to chose a larger coefficient to have a greater leverage on the the value of the dot product, a reflection on the nature of CNNs allows for a different answer.
 
-A crucial point is that the explanation given addresses a single neuron, but a convolutional network consists of many layers, each of which contains numerous neurons. Ultimately, the success of an adversarial example depends on manipulating the values in the last layer, not the first. So while it might not be possible to have a strong impact on individual neurons in the first convolutional layer, small changes at many of its neurons will be aggregated by subsequent layers\footnote{Note that while this explanation does require more than 1 hidden layer, it does not rely on the nonlinearity between them.}. Thus, in a sense, a CNN also realizes high-dimensional inner products, but defers their computation to higher layers.
+A crucial point is that the explanation given addresses a single neuron, but a convolutional network consists of many layers, each of which contains numerous neurons. Ultimately, the success of an adversarial example depends on manipulating the values in the last layer, not the first. So while it might not be possible to have a strong impact on individual neurons in the first convolutional layer, small changes at many of its neurons will be aggregated by subsequent layers\footnote{Note that while this explanation does require more than 1 hidden layer, it does not rely on the nonlinearity between them.}. Thus, in a sense, a CNN also realizes high-dimensional dot products, but defers their computation to higher layers.
 
 \subsection{Universality of Adversarial Examples}
 % TODO source for MNIST
@@ -416,27 +420,27 @@ This universality of AEs is not only astounding, but also problematic since it f
 
 \subsection{Relating the Linear Explanation to the Network Function}
 % TODO "is still an open question" as far as I'm aware
-Since adversarial examples are able to generalize across both different hyperparameters and different training data choices, their existence seems to be more like a fundamental property of the data space than a noise-like artifact of a specific network or of the choice of samples from the data distribution. In \cite{explaining-and-harnessing-adversarial-examples} it has already been established that AEs exhibit some directional contiguity. How this ties in with the topology learned by the network is still an open question. One possible perspective on this matter is attained by considering the function represented by an ANN as a homeomorphism, which is at least valid for nonsingular weight matrices. In that case, the network is only able to stretch and deform the input space as shown in figure \ref{fig:network-homeomorphism} before making a decision, but it can't cut and sew up the space.
+Since adversarial examples are able to generalize across both different hyperparameters and different training data choices, their existence seems to be more like a fundamental property of the data space than a noise-like artifact of a specific network or of the choice of samples from the data distribution. In \cite{explaining-and-harnessing-adversarial-examples} it has already been established that AEs exhibit some directional contiguity. How this ties in with the topology learned by the network is still an open question. One possible perspective on this matter is attained by considering the function represented by an ANN as a homeomorphism, which is at least valid for nonsingular weight matrices. In that case, the network is only able to stretch and deform the input space as shown in figure \ref{fig:network-homeomorphism} before making a decision, but it can not cut and sew up the space.
 
 \begin{figure}[h!tb]
     \centering
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[t]{0.45\textwidth}
         \includegraphics[width=\textwidth]{homeomorphism_start.png}
-        \caption{The untransformed input space.}
+        \caption{The untransformed input space}
         \label{fig:network-homeomorphism-start}
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[t]{0.45\textwidth}
         \includegraphics[width=\textwidth]{homeomorphism_end_1.png}
-        \caption{Space as transformed by the network.}
+        \caption{Space as transformed by the network}
         \label{fig:network-homeomorphism-end}
     \end{subfigure}
     \caption[Network function as homeomorphic transformation of input space]{Illustration of a homeomorphic transformation of the input space in a binary classification task. Blue and red areas indicate the data distribution and the black line represents the decision boundary. Images taken from \cite{neural-network-homeomorphics-transformation}}
     \label{fig:network-homeomorphism}
 \end{figure}
 
-Because the chosen network is not powerful enough to disentangle the classes, it minimizes the average error by elongating the space such that the entangled part becomes minimal. As a consequence the data manifolds for both classes are highly deformed and stretched. A result from \cite{explaining-and-harnessing-adversarial-examples} is that the contiguous regions of adversarial examples radiate outward from the original image. However, since randomized alterations of the input image hardly ever produce adversarial examples, it is clear that if they radiate outwards, they must do so in very thin\footnote{albeit long, and therefore possibly voluminous} strips. The homeomorphic perspective provides a topological reason for the network to do this. Since it can't really \emph{solve} the problem because the data manifolds are too strongly entangled, it minimizes the error by deforming the regions classified erroneously into low probability regions.
+Because the chosen network is not powerful enough to disentangle the classes, it minimizes the average error by elongating the space such that the entangled part becomes minimal. As a consequence the data manifolds for both classes are highly deformed and stretched. A result from \cite{explaining-and-harnessing-adversarial-examples} is that the contiguous regions of adversarial examples radiate outward from the original image. However, since randomized alterations of the input image hardly ever produce adversarial examples, it is clear that if they radiate outwards, they must do so in very thin\footnote{albeit long, and therefore possibly voluminous} strips. The homeomorphic perspective provides a topological reason for the network to do this. Since it cannot really \emph{solve} the problem because the data manifolds are too strongly entangled, it minimizes the error by deforming the regions classified erroneously into low probability regions.
 
 % TODO
 % They tried to train with AEs increase network's resistance, didn't work (but improved generalization, even more than dropout does)
@@ -481,7 +485,7 @@ At this point it is vital to lay out in detail how the adversarial examples insp
 	\label{alg:make-adversarial}
 \end{algorithm}
 
-This approach is based on \cite{how-to-trick-neural-network-panda-to-vulture} and relies on an iterative strengthening of an image's adversarial properties. It is described in a data-agnostic manner, even though it is only used for images in the scope of this thesis. The AE gets initialized with the image data. Then a selectable number of iterations is performed where, as a first step, the gradient is computed via backpropagation. Subsequently, the gradient of the input data is extracted\footnote{In the pseudo-code this is indicated by \emph{grad[0]}, but the specifics will depend on the software and libraries used} and its sign is computed, in keeping with FGSM. This signed gradient is then modulated by a coefficient and added to the adversarial data. This coefficient, however, slightly deviates from the description in \eqref{eq:fast-gradient-sign-method}. Perturbation $r$ is formed by modulating the gradient with $\frac{c}{\numIt}$, meaning that the adaption strength coefficient $c$ is scaled with the number of iterations. It is functionally equivalent with simply choosing a smaller $c$, but provides the advantage that the parameter scales are comparable to the single-step approach of \cite{explaining-and-harnessing-adversarial-examples}. There, a value of $0.9$ means a distance of $0.9 \cdot \norm{r}$ traveled in input space, and here, it indicates the same distance traveled, although the path may be curved so the distance between start and end point may be smaller. Thus, a value of $c = 0.9$ describes a sphere of radius $0.9 \cdot \norm{r}$ around the starting location, containing all eligible end points for the AE search. Besides comparability, this geometric meaning is another reason to link step size and iteration count.
+This approach is based on \cite{how-to-trick-neural-network-panda-to-vulture} and relies on an iterative strengthening of an image's adversarial properties. It is described in a data-agnostic manner, even though it is only used for images in the scope of this thesis. The AE gets initialized with the image data. Then a selectable number of iterations are performed where, as a first step, the gradient is computed via backpropagation. Subsequently, the gradient of the input data is extracted and its sign is computed, in keeping with FGSM. This signed gradient is then modulated by a coefficient and added to the adversarial data. This coefficient, however, slightly deviates from the description in \eqref{eq:fast-gradient-sign-method}. Perturbation $r$ is formed by modulating the gradient with $\frac{c}{\numIt}$, meaning that the adaption strength coefficient $c$ is scaled with the number of iterations. It is functionally equivalent with simply choosing a smaller $c$, but provides the advantage that the parameter scales are comparable to the single-step approach of \cite{explaining-and-harnessing-adversarial-examples}. There, a value of $0.9$ means a distance of $0.9 \cdot \norm{r}$ traveled in input space, and here, it indicates the same distance traveled, although the path may be curved so the distance between start and end point may be smaller. Thus, a value of $c = 0.9$ describes a sphere of radius $0.9 \cdot \norm{r}$ around the starting location, containing all eligible end points for the AE search. Besides comparability, this geometric meaning is another reason to link step size and iteration count.
 
 
 
@@ -499,19 +503,19 @@ With the method presented in section \ref{sec:iterative-fgsm}, it is possible to
 
 \begin{figure}[h!tb]
     \centering
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[t]{0.45\textwidth}
         \includegraphics[width=\textwidth]{aes_new/panda.png}
-        \caption{Original, rescaled image as fed into the network. Top prediction: \emph{giant panda}, 99.23\% confidence}
+        \caption{Original, rescaled image as fed into the network. Top prediction: \emph{giant panda}, 99.23\% confidence.}
         \label{fig:ae-example-original}
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[t]{0.45\textwidth}
         \includegraphics[width=\textwidth]{aes_new/panda_acorn_10_0dot9.png}
-        \caption{Adversarial example. Top prediction: \emph{acorn}, 86.17\% confidence \\}
+        \caption{Adversarial example. Top prediction: \emph{acorn}, 86.17\% confidence.}
         \label{fig:ae-example-ae}
     \end{subfigure}
-    \caption[Adversarial example of a panda as an acorn, generated with iterative FGSM]{An image of a panda and its adversarial form. The latter was generated with $c = 0.9$ and 10 iterations on ImageNet/GoogLeNet}
+    \caption[Adversarial example of a panda as an acorn, generated with iterative FGSM]{An image of a panda and its adversarial acorn form. The latter was generated with $c = 0.9$ and 10 iterations on GoogLeNet.}
     \label{fig:ae-example}
 \end{figure}
 
@@ -521,19 +525,19 @@ Even though no visible changes are apparent, the right image is clearly not iden
 
 \begin{figure}[h!tb]
     \centering
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[t]{0.45\textwidth}
         \includegraphics[width=\textwidth]{aes_new/panda_acorn_10_0dot9_posdiff.png}
-        \caption{Pointwise difference of original and adversarial image, positive part. See appendix \ref{sec:visualizing-diff} for details.}
+        \caption{Pointwise difference, positive part. See appendix \ref{sec:visualizing-diff} for details.}
         \label{fig:ae-difference-diff}
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[t]{0.45\textwidth}
         \includegraphics[width=\textwidth]{aes_new/panda_acorn_10_0dot9_grad.png}
-        \caption{Sign of the gradient in the first iteration as used by iterative FGSM. Scaled by the 98th percentile to scale to visible range}
+        \caption{Sign of the gradient in the first iteration as used by iterative FGSM. Scaled by the 98th percentile to scale to visible range.}
         \label{fig:ae-difference-grad}
     \end{subfigure}
-    \caption[Difference between original and adversarial example]{Illustration of the deviation between the images in figure \ref{fig:ae-example}.}
+    \caption[Difference between original and adversarial example]{Illustration of the deviation between figures \ref{fig:ae-example-original} and \ref{fig:ae-example-ae}}
     \label{fig:ae-difference}
 \end{figure}
 
@@ -543,7 +547,7 @@ Another circumstance uncovered by figure \ref{fig:ae-difference-diff} is the emp
 
 \begin{figure}[h!tb]
     \centering
-    \begin{subfigure}[b]{0.37\textwidth}
+    \begin{subfigure}[t]{0.37\textwidth}
     		\centering
         \includegraphics[scale=0.5]{imagenet/n12267677_6653.JPEG}
         \caption{An acorn (n12267677\_6653.jpeg)}
@@ -551,7 +555,7 @@ Another circumstance uncovered by figure \ref{fig:ae-difference-diff} is the emp
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.53\textwidth}
+    \begin{subfigure}[t]{0.53\textwidth}
         \includegraphics[width=\textwidth]{imagenet/n03016953_140.JPEG}
         \caption{A dresser (n03016953\_140.jpeg)}
         \label{fig:imagenet-acorn-dresser-dresser}
@@ -564,14 +568,14 @@ To test this hypothesis, the same procedure with the same parameters was repeate
 
 \begin{figure}[h!tb]
     \centering
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[t]{0.45\textwidth}
         \includegraphics[width=\textwidth]{aes_new/panda_dresser_10_0dot9_posdiff.png}
-        \caption{Pointwise difference of original and adversarial image}
+        \caption{Pointwise difference}
         \label{fig:ae-dresser-difference-diff}
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[t]{0.45\textwidth}
         \includegraphics[width=\textwidth]{aes_new/panda_dresser_10_0dot9_grad.png}
         \caption{Sign of the gradient in the first iteration as used by iterative FGSM}
         \label{fig:ae-dresser-difference-grad}
@@ -580,20 +584,20 @@ To test this hypothesis, the same procedure with the same parameters was repeate
     \label{fig:ae-dresser-difference}
 \end{figure}
 
-As one can see, figure \ref{fig:ae-difference-diff} and \ref{fig:ae-dresser-difference-diff} are overwhelmingly similar, only differing in the noise-like pattern in which the individual changes are locally arranged. Rectangular shapes, much less a dresser, are not visible, which makes the hypothesis seem less likely to be true. However, a noteworthy circumstance is that in this case, the algorithm did not succeed in turning the panda into a dresser. The top prediction was \emph{n02120079, Arctic fox} with $8.96\%$ certainty, with \emph{n02510455, giant panda} still in 5th place with $2.77\%$. The class \emph{n03016953, dresser} was not even in the top 5 predictions. This is not unique to the dresser class, rather, it seems the panda is rather intractable when trying to turn it into rigid, angular objects\footnote{though only a small sample of eligible target classes was tested}.
+As one can see, figure \ref{fig:ae-difference-diff} and \ref{fig:ae-dresser-difference-diff} are overwhelmingly similar, only differing in the noise-like pattern in which the individual changes are locally arranged. Rectangular shapes, much less a dresser, are not visible, which makes the hypothesis seem less likely to be true. However, a noteworthy circumstance is that in this case, the algorithm did not succeed in turning the panda into a dresser. The top prediction was \emph{n02120079, Arctic fox} with $8.96\%$ certainty, with \emph{n02510455, giant panda} still in 5th place with $2.77\%$. The class \emph{n03016953, dresser} was not even in the top 5 predictions. This is not unique to the dresser class, rather, it seems the panda is rather intractable when trying to turn it into rigid, angular objects\footnote{though only a small sample of eligible target classes was tested.}.
 
 As the case stands, it is possible that feigning a more dresser-like outline would be effective, but can not be performed by the algorithm in this configuration. Thus, instead of choosing a target class that suggests a more visible output, an attempt was made to elicit a more evident acorn shape in the difference by increasing the algorithms power to modify the image, even if it comes at the expense of the produced image's adversariality. This was done by increasing the value of $c$ to a an excessive $3.0$. The resulting difference between original and adversarial image is shown in figure \ref{fig:ae-high-power}.
 
 \begin{figure}[h!tb]
     \centering
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[t]{0.45\textwidth}
         \includegraphics[width=\textwidth]{aes_new/panda_acorn_10_3dot0_posdiff.png}
-        \caption{Pointwise difference of original and adversarial image}
+        \caption{Pointwise difference}
         \label{fig:ae-high-power-img}
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[t]{0.45\textwidth}
         \includegraphics[width=\textwidth]{aes_new/panda_acorn_10_3dot0_grad.png}
         \caption{Sign of the gradient in the first iteration as used by iterative FGSM}
         \label{fig:ae-high-power-diff}
@@ -606,7 +610,7 @@ Here, the visual similarities to something like \ref{fig:imagenet-acorn-dresser-
 
 Also, while outlines are evidently important, it would be a false conclusion to assume that FGSM operates \emph{exclusively} on outlines. Even though some clues have been presented that indicate a significant role of larger shapes, it is crucial to keep in mind that other factors may contribute important success factors as well, such as texture or a completely delocalized noisy effect, which are not ideally covered by displaying the most prominent changes in the image.
 
-Another interesting aspect is the relationship between difference and gradient. Figures \ref{fig:ae-difference}, \ref{fig:ae-dresser-difference} and \ref{fig:ae-high-power} not only show the difference between original image and the completed adversarial example, but also the gradient at the location of the original image\footnote{This is the gradient used in the first iteration}. One aspect deserves attention when contrasting these two: the distribution of values across the image is vastly dissimilar. Normally, this would be expected since the merit of an iterative process like a gradient descent is its ability to adjust its course based on local information of the optimized function at the current location. Therefore, the point where the process terminates is not usually aligned with the direction of the first step\footnote{If this were expected to happen, then one could have simply done a binary search on the step size and reach the same point (or an even better point) faster}.
+Another interesting aspect is the relationship between difference and gradient. Figures \ref{fig:ae-difference}, \ref{fig:ae-dresser-difference} and \ref{fig:ae-high-power} not only show the difference between original image and the completed adversarial example, but also the gradient at the location of the original image\footnote{This is synonymous to the gradient used in the first iteration.}. One aspect deserves attention when contrasting these two: the distribution of values across the image is vastly dissimilar. Normally, this would be expected since the merit of an iterative process like a gradient descent is its ability to adjust its course based on local information of the optimized function at the current location. Therefore, the point where the process terminates is not usually aligned with the direction of the first step\footnote{If this were expected to happen, then one could have simply done a binary search on the step size and reach the same point (or an even better one) faster.}.
 
 However, in this case it is still worth discussing, because in \cite{explaining-and-harnessing-adversarial-examples} it was discovered that adversarial examples can be found in this initial direction, given an appropriate step size is used. However, here we find that the direction in input space has clearly changed over the course of the optimization, and above we have also noted that performing $100$ instead of $10$ iterations can boost performance, even when the maximum distance possibly traversed in input space is the same.
 
@@ -639,7 +643,7 @@ The previous section revealed a relationship between iteration count and the eff
 
 The original image was again the panda from figure \ref{fig:ae-example-original}. Since acorns and dressers behaved very differently as target classes, both were tried for iterations varying from 10 to 500. For the acorn, the first two data points show the strongest increase in network confidence, by a little under $6.5\%$. Afterwards, the improvements quickly taper off and the network predictions start to saturate at slightly above $94\%$. This demonstrates that there exist pairs of images and target classes for which the fast gradient sign method stabilizes at a value below 1, even if ample computation time is provided.
 
-In contrast to the transformation toward an acorn prediction, the attempt to provoke a prediction as a dresser seems much less promising. While the former did not saturate around 1, it at least saturated around a high confidence value, being the clear top prediction of the network. The presumed dresser, though, hardly makes any progress. It attains a mere $1.1\%$ confidence with 10 iterations and only manages to achieve slightly under $2\%$ even if given 500 iterations. While this observation is not sufficient to conclude that turning a panda into an adversarial example of the dresser class is impossible with iterative FGSM\footnote{It might still be possible with a higher change coefficient, which will be analyzed below}, it clearly shows that for a given ANN, and thus fixed input dimension, a specific value for $c$ may work for one target class but not the other, even if the original image is identical. It is a necessary conclusion that the way in which adversarial examples are structured in the input space is not symmetrical w.r.t the target class.
+In contrast to the transformation toward an acorn prediction, the attempt to provoke a prediction as a dresser seems much less promising. While the former did not saturate around 1, it at least saturated around a high confidence value, being the clear top prediction of the network. The presumed dresser, though, hardly makes any progress. It attains a mere $1.1\%$ confidence with 10 iterations and only manages to achieve slightly under $2\%$ even if given 500 iterations. While this observation is not sufficient to conclude that turning a panda into an adversarial example of the dresser class is impossible with iterative FGSM\footnote{It might still be possible with a higher change coefficient, which will be analyzed below.}, it clearly shows that for a given ANN, and thus fixed input dimension, a specific value for $c$ may work for one target class but not the other, even if the original image is identical. It is a necessary conclusion that the way in which adversarial examples are structured in the input space is not symmetrical w.r.t the target class.
 
 Another parameter whose impact on the success of adversarial example generation is worth exploring is the adaption strength coefficient $c$. The choice for this value has to strike a balance between the algorithm's capability to modify the original image in order to trick the model, and limiting the distance traveled from the original image to ensure that the resulting AE will be visually indistinguishable from it. To gain some insight into this relation, GoogLeNet confidence on multiple adversarial target classes as a function of $c$ has been plotted in figure \ref{fig:confidence-vs-coeff}, while the precise values are given in table \ref{tab:confidence-vs-coeff}.
 
@@ -675,7 +679,7 @@ Yet, it just shows that GoogLeNet can be led to believe that the input shows a d
 \end{figure}
 
 % TODO find source for claim that deep NNs operate like human vision
-Here, one can clearly see the visual artifacts that arose from modification of the original image. The image features a high concentration of intense color spots that follow a noise-like distribution around the panda's forehead. One can also observe a similar, but more sparse pattern on the left side\footnote{the beholder's left} of the panda's nose. These spots are high-amplitude, high-frequency features which led to an analysis of the frequency space of adversarial examples in section \ref{sec:spectra}. The impact of these features is a matter of perspective. On the one hand, it is easy to tell the supposed adversarial example apart from the original image, or any other regular image, making it somewhat not adversarial. On the other hand, what the picture shows what is clearly still a panda, and one would ask of a CNN to be able to correctly identify it as such. While this finding doesn't disprove the ambitious claim that deep neural networks process images in a similar fashion to human brains, it highlights that even if they do, they can be effectively distracted and confused by localized, nonsensical information.
+Here, one can clearly see the visual artifacts that arose from modification of the original image. The image features a high concentration of intense color spots that follow a noise-like distribution around the panda's forehead. One can also observe a similar, but more sparse pattern on the left side\footnote{the beholder's left} of the panda's nose. These spots are high-amplitude, high-frequency features which led to an analysis of the frequency space of adversarial examples in section \ref{sec:spectra}. The impact of these features is a matter of perspective. On the one hand, it is easy to tell the supposed adversarial example apart from the original image, or any other regular image, making it somewhat not adversarial. On the other hand, what the picture shows what is clearly still a panda, and one would ask of a CNN to be able to correctly identify it as such. While this finding does not disprove the ambitious claim that deep neural networks process images in a similar fashion to human brains, it highlights that even if they do, they can be effectively distracted and confused by localized, nonsensical information.
 
 \subsection{Iterative properties of the transformation progress}
 \label{subsec:iterative-properties}
@@ -686,23 +690,23 @@ Even though iterative FGSM utilizes the same fundamental idea for generating adv
 % TODO there should not be a value for iteration 0
 \begin{figure}[h!tb]
     \centering
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[t]{0.45\textwidth}
         \includegraphics[width=\textwidth]{confidence-evolution-10.png}
         \caption{10 iterations}
         \label{fig:confidence-evolution-10}
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[t]{0.45\textwidth}
         \includegraphics[width=\textwidth]{confidence-evolution-100.png}
         \caption{100 iterations}
         \label{fig:confidence-evolution-100}
     \end{subfigure}
-    \caption[Development of network confidence w.r.t iterations]{Development of network confidence over the iterations. Panda turned into an AE of class \emph{n12267677, acorn}, $c = 0.9$}
+    \caption[Development of network confidence w.r.t iterations]{Development of network confidence over the iterations. Panda turned into an AE of class \emph{n12267677, acorn}, using $c = 0.9$.}
     \label{fig:confidence-evolution}
 \end{figure}
 
-Again, a panda has been transformed into what the network considers to be an acorn. Even though \ref{fig:confidence-evolution-100} has $10$ times as many iterations as \ref{fig:confidence-evolution-10}, the plots look strikingly similar. This is not entirely unexpected, though. Remember that the algorithm links step size and iteration count in the adaption strength coefficient together, so increasing iterations while keeping $c$ constant leads to a smaller step size and vice-versa\footnote{Reasons why this link may be desirable are given in section \ref{sec:iterative-fgsm}}.
+Again, a panda has been transformed into what the network considers to be an acorn. Even though \ref{fig:confidence-evolution-100} has $10$ times as many iterations as \ref{fig:confidence-evolution-10}, the plots look strikingly similar. This is not entirely unexpected, though. Remember that the algorithm links step size and iteration count together in the adaption strength coefficient, so increasing iterations while keeping $c$ constant leads to a smaller step size and vice-versa\footnote{Reasons why this link may be desirable are given in section \ref{sec:iterative-fgsm}.}.
 
 Initially, the network confidently predicts the correct class. During the initial iterations, the confidence for this class drops, while the confidence of the adversarial class stays practically at $0$. Only later, at about the halfway point in the optimization process, does its confidence begin to rise until it reaches its maximum with the last iteration. The temporal delay between these two developments is surprising. GoogLeNet uses a final softmax layer, so all class probabilities sum up to $1$. This means that some of the confidence must be going to other classes not directly involved this process. The overall shape of the confidence curve is sigmoidal (although this is hard to see with 10 iterations). This observation serves as a basis for an attempt to predict the success of an AE generation process in section \ref{sec:predicting-final-confidence}
 
@@ -726,7 +730,7 @@ For the 100 iteration run, the minimal combined probability for true and target 
 	\label{tab:ae-intermediate}
 \end{table}
 
-A tempting fallacy would be to look at figure \ref{fig:confidence-evolution-10}, notice the distinctly non-zero slope at the end for the acorn class and conclude that with 10 iterations, the algorithm has been prematurely terminated. While it is true that more iterations improve the final prediction in the panda-acorn combination (cf. table \ref{tab:confidence-vs-iterations}), the reasons why this happens are a bit more intricate. In a lot of iterative algorithms, performing an additional step has no bearing on the previous iterations. However, since algorithm \ref{alg:make-adversarial} couples iterations and step size, choosing 11 iterations would not simply lead to an additional step, but lead to more, smaller steps. Thus, it is really the path taken by the algorithm that improves if more iterations are provided, not the distance traveled\footnote{Though one could in theory also just perform an additional step of size $\frac{c}{10}$ and most probably gain a higher confidence as a result.}. This is a superior approach, since one stays closer to the original image, strengthening the adversarial properties of the output.
+A tempting fallacy would be to look at figure \ref{fig:confidence-evolution-10}, notice the distinctly non-zero slope at the end for the acorn class and conclude that with 10 iterations, the algorithm has been prematurely terminated. While it is true that more iterations improve the final prediction in the panda-acorn combination (cf. table \ref{tab:confidence-vs-iterations}), the reasons why this happens are a bit more intricate. In a lot of iterative algorithms, performing an additional step has no bearing on the previous iterations. However, since algorithm \ref{alg:make-adversarial} couples iterations and step size, choosing 11 iterations would not simply lead to an additional step, but lead to more, smaller steps. Thus, it is really the path taken by the algorithm that improves if more iterations are provided, not the distance traveled\footnote{though one could in theory also just perform an additional step of size $\frac{c}{10}$ and most probably gain a higher confidence as a result.}. This is a superior approach, since one stays closer to the original image, strengthening the adversarial properties of the output.
 
 % TODO
 % What happens if we make a panda less / more like a panda?
@@ -743,11 +747,11 @@ A tempting fallacy would be to look at figure \ref{fig:confidence-evolution-10},
 \section{Generation of large AE sets}
 \label{sec:generation-large-sets}
 
-In order to gain insights into the nature and properties of adversarial examples, it is expedient to have a great number of them at one's disposal. This allows for a more automated, larger-scale analysis than visual inspection of AEs\footnote{though visual inspection is also a useful method and is employed in section \ref{sec:fundamental-properties}} and can unveil more general characteristics. To this end, multiple large-scale batches of adversarial examples were created based on different data sets from the image classification domain and various configurations of hyper-parameters, utilizing the iterative FGSM algorithm detailed in section \ref{sec:iterative-fgsm}. 
+In order to gain insights into the nature and properties of adversarial examples, it is expedient to have a great number of them at one's disposal. This allows for a more automated, larger-scale analysis than visual inspection of AEs and can unveil more general characteristics\footnote{though visual inspection is also a useful method and is employed in section \ref{sec:fundamental-properties}.}. To this end, multiple large-scale batches of adversarial examples were created based on different data sets from the image classification domain and various configurations of hyper-parameters, utilizing the iterative FGSM algorithm detailed in section \ref{sec:iterative-fgsm}. 
 
 % TODO almost all? Not just all?
 % FIXME What about COIL 100? Has it been added?
-Apart from parameters choices, the biggest determinants of the specifics of adversarial examples are the data set used to provide the starting points in the generation process and the models that are employed to provide the gradients required by the FGSM. In this thesis, almost all AEs are based on one of two datasets: \emph{GTSRB}\footnote{German Traffic Sign Recognition Benchmark} \cite{gtsrb-description} and \emph{ImageNet} \cite{imagenet-large-scale-hierarchical-image-database}. The former is a collection of traffic signs taken from German roads at various points during approach and the latter is a general-purpose aggregate of online images with very diverse classes. Both of these datasets are combined with a respective network. For GTSRB, a network based on \cite{multi-column-neural-network-gtsrb} was used to generate adversarial examples, while with ImageNet, the \emph{GoogLeNet} network from \cite{going-deeper-with-convolutions} was used. Both networks were trained on their respective data sets\footnote{But GoogLeNet due to both its size and the size of the data set was not trained from scratch, but the weights provided by the \emph{caffe} software were used instead}.
+Apart from parameters choices, the biggest determinants of the specifics of adversarial examples are the data set used to provide the starting points in the generation process and the models that are employed to provide the gradients required by the FGSM. In this thesis, almost all AEs are based on one of two datasets: \emph{GTSRB}\footnote{German Traffic Sign Recognition Benchmark} \cite{gtsrb-description} and \emph{ImageNet} \cite{imagenet-large-scale-hierarchical-image-database}. The former is a collection of traffic signs taken from German roads at various points during approach and the latter is a general-purpose aggregate of online images with very diverse classes. Both of these datasets are combined with a respective network. For GTSRB, a network based on \cite{multi-column-neural-network-gtsrb} was used to generate adversarial examples, while with ImageNet, the \emph{GoogLeNet} network from \cite{going-deeper-with-convolutions} was used. Both networks were trained on their respective data sets\footnote{But GoogLeNet due to both its size and the size of the data set was not trained from scratch, but the weights provided by the \emph{caffe} software were used instead.}.
 
 Either of these data sets have properties that make them interesting for AE research. GTSRB offers images with a high inherent difficulty, the object is often occluded, blurry or contains a stark light-dark contrast due to shadows. They are also frequently overexposed, have an almost prohibitively weak contrast or are simply very small. All these properties mean that if a network is able to perform well on the test set, it is likely to have exceptional invariance properties, adressing the conflict between generalization and the existence of adversarial examples. ImageNet, on the other hand, has very clean, full-size images, but features a large number of classes, so the effect of source class and target (adversarial) class choice can be extensively studied. There is also a lot of \emph{object} variation in ImageNet. While images of different physical traffic signs may vary due to the aforementioned effects, the object that is to be classified always looks almost identical, by design. ImageNet, by contrast, groups lots of visually distinct entities into the same classes. The effect of this is a different type of generalization than GTSRB provides.
 
@@ -788,7 +792,7 @@ There are 43 classes with vastly different class frequencies, where the largest 
 % TODO shadows and occlusion
 \begin{figure}[h!tb]
     \centering
-    \begin{subfigure}[b]{0.30\textwidth}
+    \begin{subfigure}[t]{0.30\textwidth}
     		\centering
         \includegraphics[width=\textwidth]{gtsrb/problems/class23_00003_00029.jpg}
         \caption{Blur}
@@ -796,7 +800,7 @@ There are 43 classes with vastly different class frequencies, where the largest 
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.30\textwidth}
+    \begin{subfigure}[t]{0.30\textwidth}
     		\centering
         \includegraphics[width=\textwidth]{gtsrb/problems/class26_00014_00029.jpg}
         \caption{Overexposure}
@@ -804,26 +808,26 @@ There are 43 classes with vastly different class frequencies, where the largest 
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.30\textwidth}
+    \begin{subfigure}[t]{0.30\textwidth}
     		\centering
         \includegraphics[width=\textwidth]{gtsrb/problems/class19_00004_00029.jpg}
         \caption{Low contrast}
         \label{fig:gtsrb-challenges-contrast}
     \end{subfigure}
     
-    \begin{subfigure}[b]{0.30\textwidth}
+    \begin{subfigure}[t]{0.30\textwidth}
     		\centering
         \includegraphics{gtsrb/problems/class09_00004_00029.jpg}
         \caption{Similarity}
         \label{fig:gtsrb-challenges-similar-a}
     \end{subfigure}
-    \begin{subfigure}[b]{0.30\textwidth}
+    \begin{subfigure}[t]{0.30\textwidth}
     		\centering
         \includegraphics{gtsrb/problems/class10_00025_00029.jpg}
         \caption{Similarity}
         \label{fig:gtsrb-challenges-similar-b}
     \end{subfigure}
-    \begin{subfigure}[b]{0.30\textwidth}
+    \begin{subfigure}[t]{0.30\textwidth}
     		\centering
         \includegraphics{gtsrb/problems/class28_00012_00003.jpg}
         \caption{Low resolution}
@@ -833,7 +837,7 @@ There are 43 classes with vastly different class frequencies, where the largest 
     \label{fig:gtsrb-challenges}
 \end{figure}
 
-As one can see, the dataset contains very blurry pictures (\ref{fig:gtsrb-challenges-blur}), as well as overexposed (\ref{fig:gtsrb-challenges-overexposure}) pictures and those severely lacking in contrast\footnote{If this image appears completely black, this is not by mistake. One can hardly make out the sign's borders when zooming in to the image file.} (\ref{fig:gtsrb-challenges-contrast}), all of which impede correct classification. Another kind of challenge arises from images like \ref{fig:gtsrb-challenges-similar-a} and \ref{fig:gtsrb-challenges-similar-b}. Even though they belong to different classes, they are very similar. This alone makes classification hard, but this is especially problematic here because thanks to occlusion and shadows, the data teaches the model that images which look completely different can and often do belong to the same class. Additionally, GTSRB contains some extremely tiny images (\ref{fig:gtsrb-challenges-resolution}), so that sometimes even humans can't be sure of the correct class.
+As one can see, the dataset contains very blurry pictures (\ref{fig:gtsrb-challenges-blur}), as well as overexposed (\ref{fig:gtsrb-challenges-overexposure}) pictures and those severely lacking in contrast\footnote{If this image appears completely black, this is not by mistake. One can hardly make out the sign's borders when zooming in to the image file.} (\ref{fig:gtsrb-challenges-contrast}), all of which impede correct classification. Another kind of challenge arises from images like \ref{fig:gtsrb-challenges-similar-a} and \ref{fig:gtsrb-challenges-similar-b}. Even though they belong to different classes, they are very similar. This alone makes classification hard, but this is especially problematic here because thanks to occlusion and shadows, the data teaches the model that images which look completely different can and often do belong to the same class. Additionally, GTSRB contains some extremely tiny images (\ref{fig:gtsrb-challenges-resolution}), so that sometimes even humans cannot be sure of the correct class.
 
 % TODO table to summarize GTSRB properties
 
@@ -871,13 +875,13 @@ The first operation applied by the network is a series convolutions with 300 ker
 All activation functions in this network are hyperbolic tangents, except for the last layer, which uses a softmax activation in order to produce outputs that can be interpreted as class probabilities. As far as initialization is concerned, a uniform distribution was used for all parameters in the model, where values were drawn from the range $\brackets{-0.05, 0.05}$.
 
 % TODO mention that rescaling was done with 'nearest' interpolation, and that this was an oversight
-As indicated above, the circumstance that the GTSRB images vary in resolution complicates training and requires special handling. A neural network only accepts a fixed input size, so the traffic signs need to be scaled to one common resolution. A resolution that is too low discards valuable information, while an overly large resolution wastes computation time and makes it unduly easy to find adversarial examples (cf. section \ref{subsec:ae-linear-explanation}). In this instance, a resolution of $48 \times 48$ was chosen\footnote{The data set provides annotations indicating where within the border contained in each of the images the traffic sign is located. Only this part was extracted and scaled to the aforementioned resolution} \footnote{Due to an oversight, images were rescaled by \emph{nearest} resampling. Accuracy on the test set below shows that this did not prove fatal.}.
+As indicated above, the circumstance that the GTSRB images vary in resolution complicates training and requires special handling. A neural network only accepts a fixed input size, so the traffic signs need to be scaled to one common resolution. A resolution that is too low discards valuable information, while an overly large resolution wastes computation time and makes it unduly easy to find adversarial examples (cf. section \ref{subsec:ae-linear-explanation}). In this instance, a resolution of $48 \times 48$ was chosen\footnote{The data set provides annotations indicating where within the border contained in each of the images the traffic sign is located. Only this part was extracted and scaled to the aforementioned resolution} \footnote{Due to an oversight, images were rescaled by \emph{nearest} resampling. Accuracy on the test set below shows that this did not prove to be fatal.}.
 
-Apart from rescaling the images, one more preprocessing step was applied. As figure \ref{fig:gtsrb-challenges} demonstrates, especially when comparing \ref{fig:gtsrb-challenges-contrast} with the other images shown, there is a grave variability in the contrast of the images. In such a case, the performance can be greatly improved by normalizing the contrast, thereby relieving the CNN of an ordinary task so the learning can focus on the classification problem. Thus, contrast normalization\footnote{In the form of the \emph{autocontrast} function from the \emph{PIL} python libary} was applied to all images, both from the training and the test set. An example contrasting figure \ref{fig:gtsrb-challenges-contrast} and its preprocessed version are shown in figure \ref{fig:contrast-normalization}.
+Apart from rescaling the images, one more preprocessing step was applied. As figure \ref{fig:gtsrb-challenges} demonstrates, especially when comparing \ref{fig:gtsrb-challenges-contrast} with the other images shown, there is a grave variability in the contrast of the images. In such a case, the performance can be greatly improved by normalizing the contrast, thereby relieving the CNN of an ordinary task so the learning can focus on the classification problem. Thus, contrast normalization\footnote{in the form of the \emph{autocontrast} function from the \emph{PIL} python libary} was applied to all images, both from the training and the test set. An example contrasting figure \ref{fig:gtsrb-challenges-contrast} and its preprocessed version are shown in figure \ref{fig:contrast-normalization}.
 
 \begin{figure}[h!tb]
     \centering
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[t]{0.45\textwidth}
     		\centering
         \includegraphics{gtsrb/problems/class19_00004_00029.jpg}
         \caption{GTSRB image}
@@ -885,7 +889,7 @@ Apart from rescaling the images, one more preprocessing step was applied. As fig
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[t]{0.45\textwidth}
     		\centering
         \includegraphics{gtsrb/problems/class19_00004_00029_normalized_contrast.jpg}
         \caption{Contrast normalized variant}
@@ -932,7 +936,7 @@ ImageNet comprises RGB color images of varying size and very diverse aspect rati
 % TODO scale images down even more so they take up less space
 \begin{figure}[h!tb]
     \centering
-    \begin{subfigure}[b]{0.30\textwidth}
+    \begin{subfigure}[t]{0.30\textwidth}
     		\centering
         \includegraphics[width=\textwidth]{imagenet/examples/n01820546_31.JPEG}
         \caption{n01820546, lorikeet}
@@ -940,7 +944,7 @@ ImageNet comprises RGB color images of varying size and very diverse aspect rati
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.30\textwidth}
+    \begin{subfigure}[t]{0.30\textwidth}
     		\centering
         \includegraphics[width=\textwidth]{imagenet/examples/n03530642_10006.JPEG}
         \caption{n03530642, honeycomb}
@@ -948,14 +952,14 @@ ImageNet comprises RGB color images of varying size and very diverse aspect rati
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.30\textwidth}
+    \begin{subfigure}[t]{0.30\textwidth}
     		\centering
         \includegraphics[width=\textwidth]{imagenet/examples/n02281406_10006.JPEG}
         \caption{n02281406, sulphur butterfly}
         \label{fig:imagenet-examples-3}
     \end{subfigure}
     
-    \begin{subfigure}[b]{0.30\textwidth}
+    \begin{subfigure}[t]{0.30\textwidth}
     		\centering
         \includegraphics[width=\textwidth]{imagenet/examples/n04597913_10021.JPEG}
         \caption{n04597913, wooden spoon}
@@ -963,7 +967,7 @@ ImageNet comprises RGB color images of varying size and very diverse aspect rati
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.30\textwidth}
+    \begin{subfigure}[t]{0.30\textwidth}
     		\centering
         \includegraphics[width=\textwidth]{imagenet/examples/n02782093_1001.JPEG}
         \caption{n02782093, balloon}
@@ -971,7 +975,7 @@ ImageNet comprises RGB color images of varying size and very diverse aspect rati
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.30\textwidth}
+    \begin{subfigure}[t]{0.30\textwidth}
     		\centering
         \includegraphics[width=\textwidth]{imagenet/examples/n03937543_10012.JPEG}
         \caption{n03937543, pill bottle}
@@ -981,7 +985,7 @@ ImageNet comprises RGB color images of varying size and very diverse aspect rati
     \label{fig:imagenet-examples}
 \end{figure}
 
-The network trained on this data set and used to generate adversarial examples from it is GoogLeNet, introduced in \cite{going-deeper-with-convolutions} as part of the \emph{Inception} architecture for CNNs. Even though the paper makes reasonable claims that the architecture uses available parameters very efficiently, it is still a bulky network with 27 layers\footnote{The paper mentions 22, not counting pooling layers since they have no trainable parameters}. All layers use ReLU activation functions, except for the output, which uses a softmax function. The weight initialization distribution is not specified\footnote{Although they did mention that an ensemble they constructed used the same initialization for all models} in \cite{going-deeper-with-convolutions}.
+The network trained on this data set and used to generate adversarial examples from it is GoogLeNet, introduced in \cite{going-deeper-with-convolutions} as part of the \emph{Inception} architecture for CNNs. Even though the paper makes reasonable claims that the architecture uses available parameters very efficiently, it is still a bulky network with 27 layers\footnote{The paper mentions 22, not counting pooling layers since they have no trainable parameters.}. All layers use ReLU activation functions, except for the output, which uses a softmax function. The weight initialization distribution is not specified\footnote{Although they did mention that an ensemble they constructed used the same initialization for all models.} in \cite{going-deeper-with-convolutions}.
 
 Training a network of this size on a sufficiently large portion of ImageNet was infeasible with the available hardware infrastructure and time budget. Fortunately, a suitable, already trained model is available from \cite{caffe-model-zoo}. This network accepts 3-channel RGB images with a resolution of $224 \times 224$ as input data. Weights were initialized according to \cite{glorot-understanding-deep-nn-training}. The model was trained without data augmentation for 60 epochs, achieving a top-1 accuracy of $68.7\%$.
 
@@ -1020,10 +1024,10 @@ Using this model, 3 batches of adversarial examples were generated from the Imag
 \label{sec:spectra}
 % TODO talk about Modelling the Power Spectra of Natural  Images: Statistics and Information.pdf
 % TODO talk about Amplitude Spectra of Natural Images.pdf
-There are several ways to make use of the AE batches generated in section \ref{sec:generation-large-sets}. One of them is to analyze the frequency spectra of the original images and the adversarial examples and compare them. Spectra often prove useful when processing or studying signals since they have mathematical properties that greatly simplify some operations\footnote{For instance when accelerating convolutions}, and offer a perspective on the data that is vastly different from the one in position space.
+There are several ways to make use of the AE batches generated in section \ref{sec:generation-large-sets}. One of them is to analyze the frequency spectra of the original images and the adversarial examples and compare them. Spectra often prove useful when processing or studying signals since they have mathematical properties that greatly simplify some operations\footnote{for instance when accelerating convolutions}, and offer a perspective on the data that is vastly different from the one in position space.
 
 % TODO HSV or LAB space instead of grayvalue
-First of all follows a description of the approach taken to compute the spectra, how the data was normalized and then further processed. Computations were performed on grayvalue variants of the images, the 3 color channels were additively combined to one channel\footnote{No weighting was performed, i.e. giving the red channel a preference over the others}. To avoid issues arising from different scaling of the data, all images were normalized to norm $1$ by scaling each element with the factor $d$ according to equation \eqref{eq:image-normalization}. This is equivalent to scaling the flattened vector containing the pixel values to a length of one, measured by the euclidian norm. As a final step, a 1 row or column wide strip was cropped where necessary to make image dimensions odd, allowing for point-wise symmetry in the spectra.
+First of all follows a description of the approach taken to compute the spectra, how the data was normalized and then further processed. Computations were performed on grayvalue variants of the images, the 3 color channels were additively combined to one channel\footnote{No weighting was performed, i.e. giving the red channel a preference over the others.}. To avoid issues arising from different scaling of the data, all images were normalized to norm $1$ by scaling each element with the factor $d$ according to equation \eqref{eq:image-normalization}. This is equivalent to scaling the flattened vector containing the pixel values to a length of one, measured by the euclidian norm. As a final step, a 1 row or column wide strip was cropped where necessary to make image dimensions odd, allowing for point-wise symmetry in the spectra.
 
 \begin{align}
 	d &= \frac{1}{\displaystyle \sqrt{\sum_{i \in I}{i^2}}} \label{eq:image-normalization}
@@ -1032,7 +1036,7 @@ First of all follows a description of the approach taken to compute the spectra,
 Based on this normalized data the spectra were computed via an unscaled\footnote{see \cite{numpy-fft} for details} two-dimensional FFT for each image, followed by taking the absolute value of the result. To get a combined spectrum for all images, a simple averaging operation was performed. This process was executed separately for the original data and the adversarial examples.
 
 \subsection{ImageNet and GoogLeNet}
-The first spectra to be inspected come from the imagenet-ae-50 data set. For the images shown in figure \ref{fig:imagenet-ae-50-spectra}, only those adversarial examples contributed to the AE spectrum which obtained a confidence of $50\%$ or higher. This way, it is certain that the network decision corresponds to the desired class\footnote{One could also have identified those AEs with confidences below $50\%$ which successfully trick the network at creation time without additional computational cost, but this overlooked at the time.}. There were 287 suitable AEs in the pool. The spectrum of the original ImageNet data was approximated by the spectrum of a 20.000 image subset.
+The first spectra to be inspected come from the imagenet-ae-50 data set. For the images shown in figure \ref{fig:imagenet-ae-50-spectra}, only those adversarial examples contributed to the AE spectrum which obtained a confidence of $50\%$ or higher. This way, it is certain that the network decision corresponds to the desired class. There were 287 suitable AEs in the pool. The spectrum of the original ImageNet data was approximated by the spectrum of a 20.000 image subset.
 
 % TODO break up into 3 subfigures
 \begin{figure}[h!tb]
@@ -1056,7 +1060,7 @@ Going one step further than visual inspection, a known method for inspecting ima
 \end{figure}
 
 % TODO checking this constructive interference theory is good stuff for the conclusion
-The distributions for the individual spectra again mostly conform to the $\frac{1}{f}$ relationship, and no clear disparity is visible. The plot of the difference confirms that the differences are weak in amplitude, but it is interesting to notice that they don't appear to be indiscriminate. Rather, it seems that adversarial examples have systematically higher activation in the low frequency region and lower activation in the high-frequency region, except for a small spike near the end. This is a surprising result given that the visual inspection of extremely modified images appears to be high-frequent in nature (cf. figure \ref{fig:ae-panda-dresser-1dot8}). A possible explanation for this is that the low-frequency components are accumulations of many different directions and are thus not visibly noticeable, while the few high-frequency components use constructive interference to produce the strong observed noise patterns. A possible way to test this is to analyze the positions of the spots for correlations. If they are the result of constructive interference, they should be much more strongly correlated than random noise.
+The distributions for the individual spectra again mostly conform to the $\frac{1}{f}$ relationship, and no clear disparity is visible. The plot of the difference confirms that the differences are weak in amplitude, but it is interesting to notice that they do not appear to be indiscriminate. Rather, it seems that adversarial examples have systematically higher activation in the low frequency region and lower activation in the high-frequency region, except for a small spike near the end. This is a surprising result given that the visual inspection of extremely modified images appears to be high-frequent in nature (cf. figure \ref{fig:ae-panda-dresser-1dot8}). A possible explanation for this is that the low-frequency components are accumulations of many different directions and are thus not visibly noticeable, while the few high-frequency components use constructive interference to produce the strong observed noise patterns. A possible way to test this is to analyze the positions of the spots for correlations. If they are the result of constructive interference, they should be much more strongly correlated than random noise.
 
 The observation of outwards radiating wedges in figure \ref{fig:imagenet-ae-50-spectra} also suggests a second method of analysis. Rather than focusing on the distance to the origin, one might look for differences in the radial pattern. Thus, a procedure analogous to the one described above was performed, but instead of grouping the array elements by frequency, they were grouped by angle. 16 bins were used and similarly normalized by the number of values going into them. The result can be inspected in figure \ref{fig:imagenet-ae-50-angle}.
 
@@ -1091,7 +1095,7 @@ Somewhat surprisingly, while the trend for pronounced wedge-shaped regions emana
 	\label{fig:imagenet-ae-10-3dot0-frequency}
 \end{figure}
 
-While the downwards trend observed in figure \ref{fig:imagenet-ae-50-frequency} is less pronounced here and subject to a more dominant to-and-fro movement, the overall shape is comparable, especially in the high frequency part. What is mentionable about this curve is the circumstance that all values lie in the negative range. This implies that the log spectrum of the adversarial examples was smaller than that of the original images at every distance\footnote{This does not mean that every value in the spectrum was smaller, just the sum of all values at a specific distance}. The corresponding angle distribution for imagenet-ae-10-3.0 is shown in figure \ref{fig:imagenet-ae-10-3dot0-angle}.
+While the downwards trend observed in figure \ref{fig:imagenet-ae-50-frequency} is less pronounced here and subject to a more dominant to-and-fro movement, the overall shape is comparable, especially in the high frequency part. What is mentionable about this curve is the circumstance that all values lie in the negative range. This implies that the log spectrum of the adversarial examples was smaller than that of the original images at every distance\footnote{This does not mean that every value in the spectrum was smaller, just the sum of all values at a specific distance.}. The corresponding angle distribution for imagenet-ae-10-3.0 is shown in figure \ref{fig:imagenet-ae-10-3dot0-angle}.
 
 \begin{figure}[h!tb]
 	\centering
@@ -1123,9 +1127,9 @@ Since the resolution of GTSRB-Net is only $48 \times 48$ pixels, it is quite har
 	\label{fig:gtsrb-ae-0dot025-frequency}
 \end{figure}
 
-Here, the frequencies have been apportioned into 33 bins. It is notable that the plots for both the original and adversarial spectrum less accurately resemble a straight line. Small sample size is an unlikely explanation, because straighter lines were produced by the even smaller mount of 56 AEs leading to figure \ref{fig:imagenet-ae-10-3dot0-frequency}, and because the original distribution is based on the entire GTSRB training set. The remaining explanations are that the bumps are indeed characteristic of traffic signs, or that the contrast normalization procedure performed on the GTSRB images caused them. The frequency distribution difference is of special interest here because it shows an opposite trend to figures \ref{fig:imagenet-ae-50-frequency} and \ref{fig:imagenet-ae-10-3dot0-frequency}: The difference tens more to the lower end for the low frequencies and progresses higher as the frequencies increase. What all these plots have in common is a out-of-line upwards spike near the high-frequency end of the spectrum\footnote{Though it is weaker on the imagenet-ae-10-3.0 set}. Another major difference is the fact that this plot stays consistenty \emph{above} 0, so adversarial amplitudes are larger than their original counterparts at all frequencies.
+Here, the frequencies have been apportioned into 33 bins. It is notable that the plots for both the original and adversarial spectrum less accurately resemble a straight line. Small sample size is an unlikely explanation, because straighter lines were produced by the even smaller mount of 56 AEs leading to figure \ref{fig:imagenet-ae-10-3dot0-frequency}, and because the original distribution is based on the entire GTSRB training set. The remaining explanations are that the bumps are indeed characteristic of traffic signs, or that the contrast normalization procedure performed on the GTSRB images caused them. The frequency distribution difference is of special interest here because it shows an opposite trend to figures \ref{fig:imagenet-ae-50-frequency} and \ref{fig:imagenet-ae-10-3dot0-frequency}: The difference tens more to the lower end for the low frequencies and progresses higher as the frequencies increase. What all these plots have in common is a out-of-line upwards spike near the high-frequency end of the spectrum\footnote{though it is weaker on the imagenet-ae-10-3.0 set.}. Another major difference is the fact that this plot stays consistenty \emph{above} 0, so adversarial amplitudes are larger than their original counterparts at all frequencies.
 
-The above indicates that the spectral properties of adversarial examples that set them apart from the original data distribution is specific to the data set, or even the domain which the data set encompasses. One might also suspect the model as a major determinant. This has not been investigated, but since adversarial examples generalize across models, it doesn't seem likely. Take note that, while \cite{intriguing-properties-of-neural-networks} has shown that AEs generalize across \emph{subsets} of the same training data set, generalization across different data sets belonging to the same domain has so far not been demonstrated.
+The above indicates that the spectral properties of adversarial examples that set them apart from the original data distribution is specific to the data set, or even the domain which the data set encompasses. One might also suspect the model as a major determinant. This has not been investigated, but since adversarial examples generalize across models, it does not seem likely. Take note that, while \cite{intriguing-properties-of-neural-networks} has shown that AEs generalize across \emph{subsets} of the same training data set, generalization across different data sets belonging to the same domain has so far not been demonstrated.
 
 % TODO Really "lastly"?
 Lastly, the angular distribution will be analyzed. Figure \ref{fig:gtsrb-ae-0.025-angle} contains plots for the training set, gtsrb-ae-0.025 and their difference. As usual, the bins containing the coordinate axes can collect larger amplitudes than the rest. The difference is again strictly positive, but the trends on can observe there do not seem to correlate with those of the ImageNet angular distribution differences.
@@ -1164,11 +1168,11 @@ In an effort to make these observations more systematic and meaningful, the imag
 
 Unsurprisingly, the diagonal is almost filled with high-confidence elements. It represents the attempts to turn an image into the correct class as designated by its true label. The ballpoint pen is a notable exception. The very low confidence value indicates that not only did the network fail to classify it correctly, it is also hard to change the image such that the network makes a correct prediction.
 
-A particularly noticeable feature of the map are the horizontal lines. Most pronounced are those corresponding to the source classes \emph{assault rifle}, \emph{monastery}, \emph{conch} and \emph{file}, but other rows expose a similar trend. They indicate that the corresponding source classes can be much more effectively turned into adversarial examples of a wide range of target classes than other source classes. As a consequence, the distribution of adversarial examples in input space seems to be skewed. There exist points, for example those represented by the assault rifle image, that are surrounded by AEs from a large number of classes, while the dresser image\footnote{refered to as a chiffonier in ImageNet} has no adversarial examples nearby\footnote{The dresser used as a class representative in imagenet-ae-50 was a different one from the one inspected in section \ref{sec:fundamental-properties}.}. Another implication of this structure is that the spectra computed in section \ref{sec:spectra} are biased towards certain classes, since only actually adversarial examples, i.e. those which convince the network, were used. If more data were available, the analysis might benefit from taking a stratified sample set from the available AEs.
+A particularly noticeable feature of the map are the horizontal lines. Most pronounced are those corresponding to the source classes \emph{assault rifle}, \emph{monastery}, \emph{conch} and \emph{file}, but other rows expose a similar trend. They indicate that the corresponding source classes can be much more effectively turned into adversarial examples of a wide range of target classes than other source classes. As a consequence, the distribution of adversarial examples in input space seems to be skewed. There exist points, for example those represented by the assault rifle image, that are surrounded by AEs from a large number of classes, while the dresser image\footnote{refered to as a chiffonier in ImageNet} had no adversarial examples nearby\footnote{The dresser used as a class representative in imagenet-ae-50 was a different one from the one inspected in section \ref{sec:fundamental-properties}.}. Another implication of this structure is that the spectra computed in section \ref{sec:spectra} are biased towards certain classes, since only actually adversarial examples, i.e. those which convince the network, were used. If more data were available, the analysis might benefit from taking a stratified sample set from the available AEs.
 
 The reverse does not seem to apply. The confidence among the columns in figure \ref{fig:imagenet-ae-50-confusion-matrix} seems to be much more evenly distributed, albeit noisy. There is no class into which most other classes are readily transformed. There are, however 2 classes that appear to be particularly hard to mimic: the columns for the lorikeet and red-breasted merganser are almost entirely black. So, while some points in input space are surrounded by adversarial examples of most classes, which classes are missing does not seem to be random. 
 
-As indicated above, a major drawback of performing this analysis on the imagenet-ae-50 batch is the fact that each confidence value is only generated from one data point. Fortunately, a larger number of AE batches were created for GTSRB that all have the same source and target classes\footnote{Namely all classes in GTSRB.}. Most importantly, since the class representatives are chosen at random, they vary across the different batches. While the batches also share an iteration count of 500, their value for $c$ differs quite broadly. However, the results presented in section \ref{sec:fundamental-properties} give reason to believe that a larger/smaller value of $c$ does not induce systematic bias in favor or some source-target class pairs, but rather increases/decreases confidences uniformly. In other words, it might make trends like those in figure \ref{fig:imagenet-ae-50-confusion-matrix} less visible by adding entire sets of high or low confidence, but should not create new trends. A confusion-matrix like plot for a combination of the GTSRB batches is presented in figure \ref{fig:gtsrb-ae-multiple-confusion-matrix}.
+As indicated above, a major drawback of performing this analysis on the imagenet-ae-50 batch is the fact that each confidence value is only generated from one data point. Fortunately, a larger number of AE batches were created for GTSRB that all have the same source and target classes\footnote{namely, all classes in GTSRB.}. Most importantly, since the class representatives are chosen at random, they vary across the different batches. While the batches also share an iteration count of 500, their value for $c$ differs quite broadly. However, the results presented in section \ref{sec:fundamental-properties} give reason to believe that a larger/smaller value of $c$ does not induce systematic bias in favor or some source-target class pairs, but rather increases/decreases confidences uniformly. In other words, it might make trends like those in figure \ref{fig:imagenet-ae-50-confusion-matrix} less visible by adding entire sets of high or low confidence, but should not create new trends. A confusion-matrix like plot for a combination of the GTSRB batches is presented in figure \ref{fig:gtsrb-ae-multiple-confusion-matrix}.
 
 \begin{figure}[h!tb]
 	\centering
@@ -1209,7 +1213,7 @@ For the training portion, the first $40\%$ of the curves have been chosen. While
 
 \begin{figure}[h!tb]
     \centering
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[t]{0.45\textwidth}
     		\centering
         \includegraphics[scale=0.5]{progress/imagenet_0dot9c_100iter_800samples-success.png}
         \caption{Fit on successful AE generation}
@@ -1217,7 +1221,7 @@ For the training portion, the first $40\%$ of the curves have been chosen. While
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[t]{0.45\textwidth}
     		\centering
         \includegraphics[scale=0.5]{progress/imagenet_0dot9c_100iter_800samples-failure.png}
         \caption{Fit on failed AE generation}
@@ -1229,9 +1233,9 @@ For the training portion, the first $40\%$ of the curves have been chosen. While
 
 The curves in figure \ref{fig:progress-fit-success} exhibit a strong difference. While the blue curve is approximated very well, the green one's confidence after 100 iterations is severely underestimated. The most grave cause for this is likely the point at which the presumed sigmoid starts its ascent. The blue curve starts with much earlier with its slope, and also begins to settle down a good while before the process terminates iterations. For the green curve, the optimization has much less information to work with, since the curve is almost completely flat during the first 60 steps. In figure \ref{fig:progress-fit-failure} the same trend can be observed. The orange curve starts to rise earlier\footnote{even though it is later overtaken by the red one}, leading to a higher fit, but not a better one since it overshoots.
 
-Besides the examples examined above, it is advisable to quantify the error in the fit in order to gauge its predicitve capability. Therefore, the deviation between observed curve and fit on the remaining, not fitted part was computed and averaged across the iterations and 800 curve-fit pairs. This yielded a mean deviation of $\approx 0.03978$. While a discrepancy of $3\%$ is unacceptable for some purposes, trying to decide whether to continue with a specific run of iterative FGSM actually allows for a rather larger margin of error. As long as the chance that an AE will be able to trick the network is high enough, it is not pivotal what the exact confidence will be. However, while the average across the remaining iterations describes the quality of the fit, only the last iteration is decisive for this purpose. Thus, when the average is only taken over all last iteration differences of the 800 curves, one obtains a deviation of $0.1093$. While this is only slightly more worrying, it still does not address the full scale of the problem. What is not obvious form figure \ref{fig:progress-fit} is the fact that most source image and target class pairs don't lead to a successful adversarial example, so the distribution is heavily skewed towards curves like \ref{fig:progress-fit-failure}, unduly lowering the mean deviation.
+Besides the examples examined above, it is advisable to quantify the error in the fit in order to gauge its predicitve capability. Therefore, the deviation between observed curve and fit on the remaining, not fitted part was computed and averaged across the iterations and 800 curve-fit pairs. This yielded a mean deviation of $\approx 0.03978$. While a discrepancy of $3\%$ is unacceptable for some purposes, trying to decide whether to continue with a specific run of iterative FGSM actually allows for a rather larger margin of error. As long as the chance that an AE will be able to trick the network is high enough, it is not pivotal what the exact confidence will be. However, while the average across the remaining iterations describes the quality of the fit, only the last iteration is decisive for this purpose. Thus, when the average is only taken over all last iteration differences of the 800 curves, one obtains a deviation of $0.1093$. While this is only slightly more worrying, it still does not address the full scale of the problem. What is not obvious form figure \ref{fig:progress-fit} is the fact that most source image and target class pairs do not lead to a successful adversarial example, so the distribution is heavily skewed towards curves like \ref{fig:progress-fit-failure}, unduly lowering the mean deviation.
 
-A more meaningful evaluation can be made by splitting the curves into two sets, those that result in an AE above a certain minimal confidence and those who don't. Then, one can use the fit's value for the last iteration as a prediction of whether or not the transformation process will reach that goal. A value of $0.5$ was chosen for the minimum confidence, leading to a precision of $0.5741$ and a recall of $0.3563$. The relevant quantities are given in table \ref{tab:prediction-quantities}. This means that about $43\%$ of images predicted to reach a confidence of $0.5$ will actually fall short of that goal, which is not very problematic since this is only a very small portion of the images anyway. The low recall is a far greater problem. Since successful AEs are rather rare, passing on about $65\%$ of them is a prohibitively high price to pay if one still has to perform $40\%$ of the iterations on those $86\%$ true negatives.
+A more meaningful evaluation can be made by splitting the curves into two sets, those that result in an AE above a certain minimal confidence and those who do not. Then, one can use the fit's value for the last iteration as a prediction of whether or not the transformation process will reach that goal. A value of $0.5$ was chosen for the minimum confidence, leading to a precision of $0.5741$ and a recall of $0.3563$. The relevant quantities are given in table \ref{tab:prediction-quantities}. This means that about $43\%$ of images predicted to reach a confidence of $0.5$ will actually fall short of that goal, which is not very problematic since this is only a very small portion of the images anyway. The low recall is a far greater problem. Since successful AEs are rather rare, passing on about $65\%$ of them is a prohibitively high price to pay if one still has to perform $40\%$ of the iterations on those $86\%$ true negatives.
 
 \begin{table}[h!tp]
 	\centering
@@ -1265,13 +1269,13 @@ A more meaningful evaluation can be made by splitting the curves into two sets, 
 \section{Conclusion}
 Machine learning techniques offer a lot of opportunities to improve our lives and relieve humans of dull labor. They are becoming increasingly popular, are in our phones, recognize faces in photos in social networks and will soon drive our cars for us. Deep CNNs in particular have been exceedingly successful on image related tasks, sometimes even beating humans. But despite their robustness and performance on ever more challenging tasks, adversarial examples expose a considerable gap between the reality of modern machine learning techniques and the capabilities expected of them.
 
-Even though CNNs supposedly abstract away from minute specifics in input images, thereby attaining great generalization and invariance properties, there exists images with imperceptible changes from correctly classified ones that elicit wrongful high-confidence predictions. These adversarial examples demonstrate unexpected and undesirable traits of these models. They can be attributed to their linear nature and don't require assumptions on the nonlinearity of the network. Instead, the size of the input data is key, where a high dimensionality significantly simplifies the process of generating adversarial examples.
+Even though CNNs supposedly abstract away from minute specifics in input images, thereby attaining great generalization and invariance properties, there exists images with imperceptible changes from correctly classified ones that elicit wrongful high-confidence predictions. These adversarial examples demonstrate unexpected and undesirable traits of these models. They can be attributed to their linear nature and do not require assumptions on the nonlinearity of the network. Instead, the size of the input data is key, where a high dimensionality significantly simplifies the process of generating adversarial examples.
 
 Adversarial examples can be efficiently generated via iterative FGSM. Performing a gradient descent on the input space can notably improve network confidence on the adversarial class at the expense computation time, but is still feasible, especially since the first few iterations added are by far the most valuable. More iterations can improve the adversarial properties of the resulting image, but only up to a point. If the distance traveled in input space is limited, confidence may max out before reaching $100\%$, regardless of iteration count. Allowing longer distances input space has always worked to convince the network of any desired target class, but images can become visibly adulterated. Regardless, they uncontroversially remain representatives or their source class, just with visible noise-like patterns. The changes in the source image tend to focus on shape-defining features of the contained object. Whether or not a correlation with spatial features of the target class exists remains unclear. In the middle of iterative FGSM the image can cross an indeterminate stage where neither source nor target confidence are greater than those of unrelated classes.
 
 Comparing the spectra of the original data sets and corresponding AEs generated from them revealed discernible differences between the two. One can inspect the distribution of amplitudes with respect to the frequency and orientation, but the former appears to yield more reliable results. In either case, the observed characteristics seem to be dependent on the data set. An investigation involving more networks and data sets could shed light onto this relation.
 
-A noteworthy observation is the inhomogeneity in cross-class conversion compatibility. Even though it seems possible to convert a representative image of any class into any other class by using a sufficiently large step size, conspicuous differences occur when using a limited step size to preserve the image's visual integrity. In that case, select source classes are much more readily transformed to a majority of the possible target classes with high confidence than others. There is a similar effect regarding the target class, some classes are much harder to mimic than others, but the effect is weaker than the one regarding the source class. Another interesting result is that some misclassified original, not-yet-modified images also can't be transformed such that the network predicts the correct class.
+A noteworthy observation is the inhomogeneity in cross-class conversion compatibility. Even though it seems possible to convert a representative image of any class into any other class by using a sufficiently large step size, conspicuous differences occur when using a limited step size to preserve the image's visual integrity. In that case, select source classes are much more readily transformed to a majority of the possible target classes with high confidence than others. There is a similar effect regarding the target class, some classes are much harder to mimic than others, but the effect is weaker than the one regarding the source class. Another interesting result is that some misclassified original, not-yet-modified images also cannot be transformed such that the network predicts the correct class.
 
 An attempt was made to improve the efficiency of adversarial example generation by predicting the final confidence. Fitting a function to the confidence progress has proven to be hard because the initial part of the confidence curve contains little meaningful information. The resulting predictions lead to an unfavorable tradeoff between the low recall and the large required training portion of the progress data.
 
@@ -1321,7 +1325,7 @@ Adversarial examples also exist outside the domain of images, basically any suff
 \listoftables
 \listofalgorithms
 
-\bibliographystyle{alpha}
+%\bibliographystyle{alpha}
 \bibliography{ref,image-ref}
 
 
@@ -1374,11 +1378,7 @@ Date / Datum \hspace{7.6cm} Signature / Unterschrift
 % List of acronyms
 
 % TODO TODOS
-% Be consistent with whether figure captions end with a dot or not.
-% Be consistent with whether footnotes end in a dot, and if they start with a capital letter
 % Consistent variable names etc.
-% Maybe use "dot product" instead of "inner product"?
-% Replace can't, don't etc with proper language
 % Make sure URL in References show up where important
 % Introduction for every section
 % Add [h!!!!!!] to a lot of figures
