@@ -19,17 +19,19 @@ import adex.gtsrb
 AE_BATCH_NAME = 'gtsrb-ae-0.05'
 IS_IMAGENET = False
 MIN_AE_CONFIDENCE = 0.5
-MAX_ORIGINAL_IMAGES = 100 # Set to 0 for no limit
+MAX_ORIGINAL_IMAGES = 10 # Set to 0 for no limit
 
 CAFFE_ROOT = '/home/chrisbot/Projects/caffe'
 DATA_ROOT = '/media/sf_Masterarbeit/data'
 ORIG_ROOT = DATA_ROOT + '/GTSRB_TRAIN_PREPROCESSED'
-AE_ROOT = DATA_ROOT + '/GTSRB_TRAIN_PREPROCESSED_AE_0.5'
+AE_ROOT = DATA_ROOT + 'AE/GTSRB_TRAIN_PREPROCESSED_AE_0.5'
 SAVE_PATH_PREFIX = DATA_ROOT + '/spectra/{0}-minconfidence-{1}-maxorig-{2}'.format(
     AE_BATCH_NAME, MIN_AE_CONFIDENCE, MAX_ORIGINAL_IMAGES)
 
 BATCH_SIZE = 1
-net_imagenet = adex.googlenet.load_model(CAFFE_ROOT, BATCH_SIZE)
+net_imagenet = adex.googlenet.load_model(CAFFE_ROOT + '/models/bvlc_googlenet/deploy.prototxt',
+                                         CAFFE_ROOT + '/models/bvlc_googlenet/bvlc_googlenet.caffemodel',
+                                         BATCH_SIZE)
 transformer_imagenet = adex.googlenet.build_transformer(net_imagenet)
 
 net_gtsrb = adex.gtsrb.load_model('/media/sf_Masterarbeit/master-thesis/gtsrb/network_reprod_deploy.prototxt',

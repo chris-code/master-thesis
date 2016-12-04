@@ -12,7 +12,9 @@ import adex.googlenet
 
 CAFFE_ROOT = '/home/chrisbot/Projects/caffe'
 BATCH_SIZE = 1
-net = adex.googlenet.load_model(CAFFE_ROOT, BATCH_SIZE)
+net = adex.googlenet.load_model(CAFFE_ROOT + '/models/bvlc_googlenet/deploy.prototxt',
+                                CAFFE_ROOT + '/models/bvlc_googlenet/bvlc_googlenet.caffemodel',
+                                BATCH_SIZE)
 labels = adex.googlenet.load_labels(CAFFE_ROOT)
 transformer = adex.googlenet.build_transformer(net)
 

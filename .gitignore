@@ -2,4 +2,6 @@
 *.ipynb_checkpoints*
 *.swp
 report/Report.pdf
-*aes_old
+data/
+coil-100/snapshots/
+gtsrb/snapshots

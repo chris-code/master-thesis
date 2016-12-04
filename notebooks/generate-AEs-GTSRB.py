@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[2]:
 
 import random
 import csv
@@ -13,8 +13,8 @@ import adex.core
 import adex.gtsrb
 
 #CAFFE_ROOT = '/home/chrisbot/Projects/caffe'
-LAYOUT_PATH = '/home/chrisbot/Projects/master-thesis/gtsrb/network_reprod_deploy.prototxt'
-WEIGHT_PATH = '/home/chrisbot/Projects/master-thesis/gtsrb/snapshots/reprod_iter_548926.caffemodel'
+LAYOUT_PATH = '/media/sf_Masterarbeit/master-thesis/gtsrb/network_reprod_deploy.prototxt'
+WEIGHT_PATH = '/media/sf_Masterarbeit/master-thesis/gtsrb/snapshots/reprod_iter_548926.caffemodel'
 DATA_ROOT = '/media/sf_Masterarbeit/data/GTSRB_TRAIN_PREPROCESSED'
 OUTPUT_ROOT = '/media/sf_Masterarbeit/data/GTSRB_TRAIN_PREPROCESSED_AE_0.037'
 BATCH_SIZE = 1
