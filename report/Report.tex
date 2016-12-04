@@ -18,10 +18,8 @@
 \usepackage{algpseudocode} % Pseudocode
 \usepackage{algorithm} % Float for algorithms
 \usepackage{multirow}
-%\usepackage{natbib}
-%\bibliographystyle{alphanat}
 \usepackage{url}
-\bibliographystyle{alpha}
+%\bibliographystyle{alpha}
 
 % TODO replace some of these \newcommands with \DeclareMathOperators
 \newcommand\braces[1]{\left(#1\right)}
@@ -98,14 +96,11 @@ As the problems people try to solve with the aid of computers become more and mo
 
 One way out of this dilemma that people turn to increasingly often is the usage of machine learning techniques. The goal of machine learning is to free people from the burden of finding and programming a solution. In order to do so, a \emph{model} is defined which embodies the structure of a possible solution on a highly abstract level. However, such a model as potentially a myriad of \emph{parameters}, and no knowledge of reasonable values for those parameters can be assumed. What gives machine learning its name and makes it feasible despite the many unknown parameters is the learning method. This is a method to find a working configuration of parameters based on \emph{training data}. In \emph{supervised learning}, the algorithm that performs the learning is provided numerous pairs of an exemplary input and the corresponding desired output that the model should deliver. From these pairs, it extracts, or \emph{learns}, the relationship between input and output data, and codifies it in the model's parameters. In this manner, the need for a handcrafted solution is eliminated. The downside to this approach is that learning algorithms usually require a copious amount of training data to find good parameters. However, this drawback is increasingly often offset by the reduced software complexity, since  there is ready-made machine learning software available and data is becoming easier to collect.
 
-% TODO substantiate claim that ANNs are among the top machine learning models
 Among some of the most momentous machine learning models are \emph{artificial neural networks (ANNs)}. They are inspired by discoveries from the field of neural biology and incorporate them into models that, on a very abstract level, resemble brain structures on the detail level of individual neurons. The workings of these  neurons are greatly simplified, but in this way they can be easily connected in large bulks, empowering the resulting network to solve difficult tasks with impressive precision. ANNs are mainly used for two types of tasks: \emph{classification} and \emph{regression}. While the latter is concerned with learning a function $f: X \rightarrow Y$ that maps input data to the desired output values, it is the former that will be of interest within the scope of this thesis. Classification aims to assign each input to one category out of a predefined set of categories. The data used to train the network is structured accordingly: it consists of the input data and a \emph{label} that denotes its class.
-% TODO note that learner for neural networks is "gradient descent"?
 
 % TODO illustrate image classification
 One area where neural networks are particularly successful is \emph{image classification}, the task of assigning labels to images based on the objects contained in it. A big part of the success here can be attributed to a special variant of ANNs, called \emph{Convolutional Neural Networks (CNNs)}. These networks focus on local features in the input by applying \emph{filters} in a convolution operation, thereby curtailing redundancies in the free parameters. Combined with the focus on local features, this efficient use of free parameters allows for much larger and thus more powerful networks.
 
-% TODO illustrate training and test steps with an image
 When training a neural network for an image classification task, one desires a CNN to not only classify the images used for training correctly, but to infer and learn the fundamental characteristics of each class. Only then will the network be able to \emph{generalize} its classification capabilities to the previously unseen images it will encounter in productive use. To gauge a network's ability to generalize, another data set, called the \emph{test set} is usually withheld while training the model. The experimenter can then evaluate the performance on this set outside of training, thus obtaining an estimator for field performance of the model.
 
 In the past, ANNs in general and CNNs in particular have shown promising results not only on training data but also test data. However, recent discoveries have indicated that the generalization capability of most neural networks is not as strong as one might guess from test set performance. While networks certainly can classify unseen input with high reliability, it is possible to find minute transformations of correctly classified test data, on which the network will predict another class with high confidence. The changes that need to be applied for this to work are minuscule and undetectable to the human eye. The resulting images are called \emph{adversarial examples (AEs)}.
@@ -174,7 +169,7 @@ Out of these, the easiest to justify is the logistic sigmoid. If the output is t
 
 Since a single neuron as described above consists only of an dot product and a one-dimensional non-linearity, its computational power is limited. Artificial neural networks rely on countless neurons to perform their tasks. This gives rise to the question of how to connect all those neurons. Conceptually, one could link them up in such a way that a neuron receives input from another neuron while at the same time delivering input to that very neuron (either directly or via proxy neurons), forming a cycle. This is sometimes done and is called a \emph{Recurrent Neural Network (RNN)}, but is out of scope for this thesis. Instead, neurons will be organized in \emph{layers}, as shown in figure \ref{fig:neural-nework-structure}.
 
-% TODO fix indices
+% TODO better indices
 \begin{figure}[h!tb]
 \centering
 \includegraphics[width=\textwidth]{images/network_layout.png}
@@ -205,9 +200,7 @@ The last layer generates the output of the network. It, too, can in part be desc
 % TODO Akin to layered processing in vision
 The relatively recent machine learning trend going by the name of \emph{deep learning} builds extensively on this layered architecture of neural networks. Specifically, \emph{deep} neural networks use many more hidden layers than just 1, in contrast to the preceding networks, which were ex post named \emph{shallow} networks. The central hypothesis of this approach is that the various layers of a network will learn to perform distinct, hierarchically structured functions. Typically, the first layer (or first few layers) are expected to become low-level feature extractors, providing basic information for the higher layers. In vision tasks, for example, one can often observe that the lowest layer works as a corner detector, because the geometry within an image often contains the most important information. The following layers then hopefully extract features with an increasing level of abstraction, e.g. combining corners to edges and more complex shapes and contours. The last layer is tasked with making the final decision regarding the input object's class, using the presence of those high-level features as the basis for its choice.
 
-% TODO some networks make use of this? Sure its not all of them?
 % TODO glorot formula
-% TODO caffe does glorot initialization slightly differently
 One question that has not been addressed yet is how to actually set the weights. Under normal circumstances there is no closed form solution to compute the optimal parameters for a model. Thus, a training process that starts with a random set of weights and then iteratively improves on them is used. To accomplish random initialization, values for all weights are drawn from one of various distributions. Common choices are uniform and normal distributions. In 2010, a more sophisticated method has been proposed in \cite{glorot-understanding-deep-nn-training}. It still relies on a uniform initialization, but the limits are set for each layer individually, so as to retain the variance of the data as it flows through the layers of the network. Some networks in this thesis make use of this advanced initialization\footnote{The \emph{caffe} software used here actually slightly deviates from the proposed process, see \cite{caffe-xavier}}.
 
 In order to improve the thusly initialized weights, it is first necessary to define a way to quantify how well (or poorly) a given set of parameters performs. To this end, a \emph{loss function} (also called \emph{objective function} or \emph{error function}) is used, which combines the predictions of a network with the training labels to provide an estimate of its performance. In other words, it is a function that maps labeled input data and the parameters to a scalar value. A common loss function is the \emph{Mean Squared Error (MSE)} given in equation \eqref{eq:mse}, where $N$ is the number of data points and $\vec{\hat Y}$ and $\vec{Y}$ are vectors containing the predictions and true labels, respectively. In multinomial classification tasks, the \emph{cross entropy} loss given in equation \eqref{eq:cross-entropy-loss} \cite{caffe-cross-entropy} is a good choice if the predictions for all classes are to be interpreted as probabilities (meaning they are required to add up to 1). Here, $\vec{\hat Y}$ is a matrix containing all predicted class probabilities for all $N$ data points and $\vec{Y}$ is a vector indicating the true class.
@@ -231,8 +224,7 @@ Starting at an arbitrary point, the gradient always points in the direction of s
 
 The magnitude of the gradient is usually used as an indication of how much the weights should be changed. Note that there can be many complications, for instance, if the blue dot had started to the left of the local maximum near the left side, it might have found a smaller local minimum than the one marked in figure \ref{fig:gradient-descent}.
 
-% TODO
-% Neural networks discard time
+
 
 
 
@@ -283,8 +275,6 @@ The input is located to the left and comprises 32 neurons arranged in a two-dime
 
 As one can see, the amount of data has been greatly reduced. However, if pooling is applied to the output maps of a convolutional layer, it is reasonable to assume that critical information is retained. Unless the input image contains very high frequency information apart from noise, the convolutions should yield similar values at adjacent points. A max pooling operation then would simply select the best match for a given feature. Besides greatly reducing the amount of data to be handled, this method also confers the benefit that some translational invariance built into the network architecture rather than needing to be learned.
 
-% TODO
-% Max-Pooling provides translation invariance
 
 
 
@@ -299,8 +289,6 @@ As one can see, the amount of data has been greatly reduced. However, if pooling
 \label{sec:adversarial-examples}
 
 % TODO might Neural Representation and Neural Computation be a good cite for this?
-% TODO is dynamic-field-theory-movement-preparation a good cite?
-% TODO cite more things, especially for the molecular modeling
 In trying to recreate the learning power of the human brain on a computer, one can focus on various levels of abstraction. A system could potentially model all the chemical processes that happen within and around cells and their synapses on a molecular level. Less drastically, one could work with aggregates and averages of these values in order to retain most of the biological components and create a time-dependent system this way. Alternatively, larger groups of neurons could be used as the basic building blocks for a larger system \cite{dynamic-field-theory-movement-preparation}, operating on a level of high abstraction from chemical processes.
 
 The connectionist view is based on the proposition that ANNs as described in section \ref{sec:introduction} model the functionally relevant processes in biological brains in sufficient detail. Such systems have shown state-of-the-art performance on diverse tasks, in some cases even surpassing human performance \cite{multi-column-deep-networks-image-classification}. One important property that is required of machine learning models is the ability to \emph{generalize}. If given training data and the desired labels, a neural network should not merely learn to classify this specific data\footnote{this could be solved perfectly by just storing the data and the label}, but also learn to correctly classify new and unseen data, so long as it is reasonably similar to the training data, even if the specifics vary.
@@ -354,7 +342,6 @@ Even though the FGSM is considerably more efficient compared to the L-BFGS metho
 
 \subsection{Linear Explanation of Adversarial Examples}
 \label{subsec:ae-linear-explanation}
-% TODO source for resistance against distortions and noise
 The existence of adversarial examples naturally begs the question how they are even possible and what parts of a model they can be attributed to. They are a surprise since strict splits into training and test sets were believed to vouch for the generalization abilities of ANNs. Experiments with distorted and noisy input data point in the same direction. Since these methods fail to find significant and systematic flaws in neural networks, it is apparent that adversarial examples reside in narrow, low-probability regions of the data distribution, therefore requiring a directional instead of a randomized search.
 
 Since AEs hint at precipitous discontinuities in the input-output map realized by the network, it is inviting to blame them on the nonlinear nature of neural networks. However, as pointed out by \cite{intriguing-properties-of-neural-networks}, even unequivocally linear models such as a softmax linear classifier are susceptible to adversarial examples. An explanation which does not require the assumption that neural networks heavily relying on their nonlinear powers was suggested in \cite{explaining-and-harnessing-adversarial-examples}.
@@ -419,7 +406,6 @@ The other observed property is a universality across different training sets. Ne
 This universality of AEs is not only astounding, but also problematic since it forecloses a simple solution to the problem. If adversarial examples were model specific, a committee of different or differently trained models could be used to increase resistance against AEs by outvoting the affected model.
 
 \subsection{Relating the Linear Explanation to the Network Function}
-% TODO "is still an open question" as far as I'm aware
 Since adversarial examples are able to generalize across both different hyperparameters and different training data choices, their existence seems to be more like a fundamental property of the data space than a noise-like artifact of a specific network or of the choice of samples from the data distribution. In \cite{explaining-and-harnessing-adversarial-examples} it has already been established that AEs exhibit some directional contiguity. How this ties in with the topology learned by the network is still an open question. One possible perspective on this matter is attained by considering the function represented by an ANN as a homeomorphism, which is at least valid for nonsingular weight matrices. In that case, the network is only able to stretch and deform the input space as shown in figure \ref{fig:network-homeomorphism} before making a decision, but it can not cut and sew up the space.
 
 \begin{figure}[h!tb]
@@ -456,10 +442,9 @@ Because the chosen network is not powerful enough to disentangle the classes, it
 
 \section{Iterative Fast Gradient Sign Method}
 \label{sec:iterative-fgsm}
-% TODO FIXME expand this section
+% TODO expand this section
 In order for large-scale quantitative analysis of the properties of adversarial images to be feasible, a method for efficiently generating them is expedient. Apart from a reasonable use of computation time, such a method should also produce AEs with reliable quality, meaning that it should not try to fool a model by sometimes making clearly visible changes to the original data, as this would necessitate visual inspection of all created AEs. Ideally, the maximal perturbation performed by the algorithm is knowable beforehand so one can be sure that all generated examples which manage to trick the network are actually adversarial. This section presents an algorithm that fulfills these two criteria.
 
-% FIXME references
 This algorithm will be used both to create the individual adversarial examples of section \ref{sec:fundamental-properties} and the large amount of AEs described in section \ref{sec:generation-large-sets}, which serve as a basis for the analyses in sections \ref{sec:spectra}, \ref{sec:class-dependence-generation-success} and \ref{sec:predicting-final-confidence}.
 
 At this point it is vital to lay out in detail how the adversarial examples inspected and used in this thesis are generated. The process is based on the Fast Gradient Sign Method introduced in section \ref{sec:fast-gradient-sign-method} and detailed in equation \eqref{eq:fast-gradient-sign-method}. Briefly stated, the gradient of the loss function w.r.t. the input data is used to determine the direction in input space along which the data should be altered. Of course, in order to generate AEs and trick the networks into predicting a false class, a false label is used in the loss function. This approach lends itself to an iterative algorithm, formalized as pseudocode in algorithm \ref{alg:make-adversarial}.
@@ -794,7 +779,6 @@ The \emph{source\_class\_list} contains the classes from each of which a random 
 
 One complication needs to be mentioned at this point. The actual iterative FGSM code used in algorithm \ref{alg:generate-ae-batches} deviates slightly from the description in algorithm \ref{alg:make-adversarial}. Specifically, it terminated after reaching $90\%$ confidence on the target class. This was intended to save computation time, but as was discovered later and is described in section \ref{sec:class-dependence-generation-success}, the turnout for such good AEs is very low, and such high confidences are only achieved near the end of iterative FGSM (if at all). This also means that the condition for this termination was rarely fulfilled, and thus it should have negligible impact, but it is pointed out here regardless for reproducibility reasons.
 
-% TODO check Man vs Computer Benchmarking ML algorithms for traffic sign recognition.pdf to see if there is anything noteworthy to add about GTSRB
 \subsection{GTSRB and GTSRB-Net}
 \label{sec:generation-large-sets:gtsrb}
 The GTSRB (German Traffic Sign Recognition Benchmark) database is a large accumulation of images of German traffic signs. The photos were taken from 10 hours of video footage while driving on the streets of Germany in 2010. From the footage, a total of 51.839 images were extracted, split into a training set of 39.209 and a test set of 12.630 images, each of which contains exactly 1 sign. A few select images with good visibility are given in figure \ref{fig:gtsrb-overview}, more problematic instances are discussed below.
@@ -893,7 +877,6 @@ The first operation is a series convolutions with 300 kernels of size $7 \times 
 
 All activation functions in this network are hyperbolic tangents, except for the last layer, which uses a softmax activation in order to produce outputs that can be interpreted as class probabilities. As far as initialization is concerned, a uniform distribution was used for all parameters in the model, where values were drawn from the range $\brackets{-0.05, 0.05}$.
 
-% TODO mention that rescaling was done with 'nearest' interpolation, and that this was an oversight
 As indicated above, the circumstance that the GTSRB images vary in resolution complicates training and requires special handling. A neural network only accepts a fixed input size, so the traffic signs need to be scaled to one common resolution. A resolution that is too low discards valuable information, while an overly large resolution wastes computation time and makes it unduly easy to find adversarial examples (cf. section \ref{subsec:ae-linear-explanation}). In this instance, a resolution of $48 \times 48$ was chosen\footnote{The data set provides annotations indicating where within the border contained in each of the images the traffic sign is located. Only this part was extracted and scaled to the aforementioned resolution} \footnote{Due to an oversight, images were rescaled by \emph{nearest} resampling. Accuracy on the test set below shows that this did not prove to be fatal.}.
 
 Apart from rescaling the images, one more preprocessing step was applied. As figure \ref{fig:gtsrb-challenges} demonstrates, there is a grave variability in the contrast of the images. In such a case, the performance can be greatly improved by normalizing the contrast, thereby relieving the CNN of an ordinary task so the learning can focus on the classification problem. Thus, contrast normalization\footnote{in the form of the \emph{autocontrast} function from the \emph{PIL} python library} was applied to all images, both from the training and the test set. An example contrasting figure \ref{fig:gtsrb-challenges-contrast} and its preprocessed version are shown in figure \ref{fig:contrast-normalization}.
@@ -1161,7 +1144,6 @@ Here, the frequencies have been apportioned into 33 bins. It is notable that the
 
 The above indicates that the spectral properties of adversarial examples that set them apart from the original data distribution is specific to the data set, or even the domain which the data set encompasses. One might also suspect the model as a major determinant. This has not been investigated, but since adversarial examples generalize across models, it does not seem likely. Take note that, while \cite{intriguing-properties-of-neural-networks} has shown that AEs generalize across \emph{subsets} of the same training data set, generalization across different data sets belonging to the same domain has so far not been demonstrated.
 
-% TODO Really "lastly"?
 Lastly, the angular distribution will be analyzed. Figure \ref{fig:gtsrb-ae-0.025-angle} contains plots for the training set, gtsrb-ae-0.025 and their difference. As usual, the bins containing the coordinate axes can collect larger amplitudes than the rest. The difference is again strictly positive, but the trends one can observe there do not seem to correlate with those of the ImageNet angular distribution differences.
 
 \begin{figure}[h!tb]
@@ -1355,7 +1337,7 @@ Adversarial examples also exist outside the domain of images, basically any suff
 \listoftables
 \listofalgorithms
 
-%\bibliographystyle{alpha}
+\bibliographystyle{alpha}
 \bibliography{ref,image-ref}
 
 
@@ -1408,9 +1390,7 @@ Date / Datum \hspace{7.6cm} Signature / Unterschrift
 % TODO
 % List of acronyms
 % Consistent variable names etc.
-% Uniform linewidth of 1.2
-
-% Make sure all plots contain all relevant information
+% Make sure all plot captions contain all relevant information
 
 % Plot the distribution of confidences in generated AE batches
 % Include paper that was sent to me in email
