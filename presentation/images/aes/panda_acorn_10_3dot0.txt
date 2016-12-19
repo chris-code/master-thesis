@@ -1,0 +1,6 @@
+['n12267677 ', 'acorn']: 100.0% certainty
+['n12620546 ', 'hip', ' rose hip', ' rosehip']: 0.0% certainty
+['n07753113 ', 'fig']: 0.0% certainty
+['n02490219 ', 'marmoset']: 0.0% certainty
+['n01944390 ', 'snail']: 0.0% certainty
+['n02493509 ', 'titi', ' titi monkey']: 0.0% certainty
